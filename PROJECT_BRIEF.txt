@@ -1,0 +1,198 @@
+LERNEXAI PROJECT BRIEF
+=====================
+Updated: July 2026
+
+1. PROJECT OVERVIEW
+-------------------
+LernexAI is a React + TypeScript learning SaaS platform built with Vite and Supabase. It combines a polished marketing website with a working learner product for browsing courses, enrolling, studying lessons, tracking progress, taking quizzes, completing a final exam, and upgrading to Pro.
+
+The current flagship course is Microsoft Excel Essentials, with structured modules, lessons, practical content, module quizzes, and a final assessment flow.
+
+2. CURRENT FEATURE SET
+----------------------
+Product and UX:
+- Responsive landing page with hero, problem/solution sections, features, stats, pricing, testimonials, FAQ, founder story, contact, privacy, and terms pages.
+- Mobile-safe navigation and layout fixes across landing, dashboard, browse, my learning, course detail, and learning pages.
+- Clear dashboard / back-entry buttons on smaller screens where needed.
+- Authenticated user experience with protected routes and loading states.
+- Dashboard that shows the latest enrolled course, real progress, and a continue-learning entry point.
+- Dedicated My Learning page to browse all enrolled courses.
+
+Learning experience:
+- Course catalog and course detail pages powered by Supabase data.
+- Full learning interface with a three-panel layout: module/lesson sidebar, lesson content area, and AI tutor panel.
+- Persistent lesson completion and module-level progress tracking.
+- Previous/Next lesson navigation and visual progress indicators.
+- Module quizzes with saved attempts and popup-style feedback.
+- Quiz result UI shows green success state for correct answers and red state for incorrect answers.
+- Final exam flow with 25 questions, 30-minute timer, server-side grading, pass/fail results, and completion state that feeds the certificate journey.
+
+AI tutor:
+- Lesson-aware AI assistant available inside the learning experience.
+- Suggested prompts for quick learning support.
+- English, Hindi, and Hinglish-style interaction in the UI.
+- Daily message usage limits for Free and Pro users.
+- Chat history loading and persistence through Supabase-backed tutor logic.
+- Course-only guardrail to keep answers relevant to the current learning context.
+
+Payments and plans:
+- Razorpay-based Pro upgrade flow using real order creation and payment verification.
+- Supabase Edge Functions handle order creation and signature verification.
+- User plan metadata is updated after successful payment.
+
+3. TECHNOLOGY STACK
+-------------------
+Frontend:
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS 4
+- Wouter routing
+- Framer Motion
+- Radix UI components
+- Lucide icons
+- TanStack React Query
+
+Backend and database:
+- Supabase Auth
+- Supabase PostgreSQL
+- Supabase Row Level Security
+- Supabase Edge Functions
+
+Payments:
+- Razorpay Checkout
+- Supabase Edge Functions for order creation and payment verification
+
+4. CURRENT APPLICATION FLOW
+---------------------------
+Public routes:
+- / - Landing page
+- /privacy - Privacy policy
+- /terms - Terms of service
+- /contact - Contact page
+- /about-founder - Founder page
+- /auth - Login and signup
+
+Protected routes:
+- /dashboard - User dashboard
+- /browse - Course catalog
+- /course/:id - Course details and enrollment
+- /my-learning - Enrolled courses overview
+- /learning/:courseId - Full learning experience
+- /final-exam/:courseId - Final exam experience
+- /upgrade - Pro upgrade page
+
+Typical learner journey:
+1. User signs up or logs in.
+2. User browses the course catalog.
+3. User opens a course and enrolls.
+4. User enters the learning experience and completes lessons.
+5. Module quizzes are attempted and saved.
+6. User completes the final exam and sees a pass/fail outcome.
+7. User can upgrade to Pro through Razorpay.
+
+5. CORE IMPLEMENTED CAPABILITIES
+--------------------------------
+Authentication:
+- Email/password and Google OAuth sign-in/sign-up.
+- Protected routes with loading state and redirect handling.
+- User metadata and plan status are managed through Supabase auth data.
+
+Course system:
+- Courses, modules, lessons, and enrollment state are loaded from Supabase.
+- Enrollment is handled safely with authenticated upsert logic.
+- Course progress and completion states are persisted and restored.
+- User progress can be reset for fresh learning-flow testing and demo review.
+
+Learning and assessment:
+- Three-panel learning interface with module navigation and lesson content.
+- Progress bars for course and module completion.
+- Quiz attempts saved per module with a uniqueness fix in the database.
+- Module quiz questions now behave like small in-page popups instead of feeling like a separate dead-end screen.
+- Final exam with scoring and review flow.
+- Final exam uses a 25-question breakdown:
+  - 8 easy
+  - 12 medium
+  - 5 hard
+- Final exam timing is set to 30 minutes.
+- Module coverage is distributed across the Excel course modules.
+
+AI tutor:
+- Accessible from the learning page.
+- Lesson context is used to generate relevant responses.
+- Free and Pro usage limits are enforced in the UI.
+- Chat history can be loaded and restored.
+- Responses are constrained to the current course context.
+
+Payments:
+- Real Razorpay checkout flow.
+- Secure server-side verification with Supabase Edge Functions.
+- Pro access is reflected in the dashboard after successful payment.
+
+6. IMPORTANT FILES
+------------------
+Application:
+- src/App.tsx
+- src/context/AuthContext.tsx
+- src/pages/Dashboard.tsx
+- src/pages/Browse.tsx
+- src/pages/CourseDetail.tsx
+- src/pages/Learning.tsx
+- src/pages/MyLearning.tsx
+- src/pages/FinalExam.tsx
+- src/pages/Upgrade.tsx
+
+Learning and tutor components:
+- src/components/ContinueLearningCard.tsx
+- src/components/CourseProgressBar.tsx
+- src/components/ModuleSidebar.tsx
+- src/components/LessonContent.tsx
+- src/components/AIChatPanel.tsx
+- src/components/QuizSection.tsx
+
+Data and payments:
+- src/lib/course.ts
+- src/lib/aiTutor.ts
+- src/lib/finalExam.ts
+- src/lib/supabase.ts
+- src/lib/razorpay.ts
+
+Supabase SQL and edge functions:
+- supabase/payments_table.sql
+- supabase/learning_rls.sql
+- supabase/fix_learning_foreign_keys.sql
+- supabase/quiz_attempts.sql
+- supabase/module_quizzes.sql
+- supabase/module_quiz_setup.sql
+- supabase/final_exam.sql
+- supabase/functions/create-razorpay-order/index.ts
+- supabase/functions/verify-razorpay-payment/index.ts
+- supabase/functions/ai-tutor/index.ts
+- supabase/functions/final-exam/index.ts
+
+7. CURRENT VALIDATION STATUS
+----------------------------
+- Vite production build passes.
+- TypeScript typecheck passes.
+- Core auth, course browsing, enrollment, learning, progress, quiz, and payment flows are implemented.
+- AI tutor UI and lesson-aware interactions are active.
+- Final exam flow is implemented with timed questions and result review.
+- Supabase Edge Functions for AI tutor and final exam are deployed and active.
+- The quiz-attempt save issue was fixed by adding the required database uniqueness constraint.
+- Test/demo progress was reset so the learner flow can be replayed from the beginning.
+
+Known gaps:
+- Certificate generation/download flow after the final exam is still pending.
+- The final exam completion step does not yet fully hand off into a complete certificate/payment journey.
+- More automated tests and deployment hardening are still pending.
+- Further polish may still be needed on some edge-case mobile layouts.
+
+8. NEXT PRIORITIES
+------------------
+1. Complete certificate generation and download flow after the final exam.
+2. Connect final exam completion cleanly to the certificate / payment journey.
+3. Add stronger error handling and toasts for Supabase and payment failures.
+4. Expand automated testing for auth, learning, quizzes, and payments.
+5. Add route-level code splitting and bundle optimization.
+
+End of report.

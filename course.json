@@ -1,0 +1,446 @@
+{
+  "id": "custom-ai-1784871062774-mastering-ai-tools---chatgpt-for-everyday-productivity",
+  "created_at": "2026-07-24T05:31:02.774Z",
+  "is_custom_ai": true,
+  "course_metadata": {
+    "title": "Applied Machine Learning & AI Systems Engineering Masterclass",
+    "subtitle": "Complete written masterclass with hands-on practice exercises, formulas & real-world projects",
+    "description": "A master-level, content-first written course on Mastering AI Tools & ChatGPT for Everyday Productivity. Learn interface navigation, core formulas (IF, XLOOKUP), Pivot Tables, data cleaning, and executive dashboard design with detailed step-by-step guides.",
+    "category": "Data & Analytics",
+    "subcategory": "Microsoft Excel",
+    "difficulty_level": "beginner",
+    "total_estimated_hours": 22,
+    "skill_level_from": "Zero Experience",
+    "skill_level_to": "Business Data Analyst",
+    "language": "English",
+    "instructor_name": "LernExAI Analytics Engineering Team",
+    "instructor_bio": "Senior Data Analysts & Financial Modeling Specialists",
+    "last_updated": "2026-02",
+    "students_enrolled_simulated": "2,450+",
+    "badge_color": "from-emerald-600 to-teal-800"
+  },
+  "learning_objectives": [
+    "Master Excel navigation, formatting, and shortcut speed tricks",
+    "Build dynamic formulas with IF, AND, OR, XLOOKUP, and INDEX-MATCH",
+    "Create interactive Pivot Tables, Slicers, and executive dashboards",
+    "Clean messy CRM data exports and automate calculations"
+  ],
+  "target_audience": [
+    "Beginners wanting to build strong spreadsheet foundations",
+    "Accountants, Business Analysts, and Finance Professionals",
+    "Students and Job Seekers aiming to enhance resume technical skills"
+  ],
+  "prerequisites": [
+    "Basic computer familiarity and internet connection"
+  ],
+  "modules": [
+    {
+      "module_number": 1,
+      "title": "Excel Fundamentals & Workspace Mastery",
+      "description": "Master the Excel interface, workbook structure, cell formatting, and fundamental navigation techniques.",
+      "estimated_hours": 3,
+      "lessons": [
+        {
+          "lesson_id": "les-m1-l1",
+          "lesson_number": 1,
+          "title": "Introduction to Excel Interface & Workbook Navigation",
+          "estimated_minutes": 25,
+          "youtube_video_id": "",
+          "video_duration_seconds": 0,
+          "text_content": "# Welcome to Microsoft Excel & Data Analysis\n\nMicrosoft Excel is the world's most widely used spreadsheet application, trusted by financial analysts, project managers, and data scientists. In this comprehensive lesson, you will learn how to navigate the ribbon interface, organize data into workbooks, and utilize essential keyboard shortcuts to boost productivity.\n\n## 1. Understanding the Excel Workbook & Grid Structure\nAn Excel file is known as a **Workbook**, which contains one or more **Worksheets**. Each sheet consists of millions of cells arranged in rows (numbered 1 to 1,048,576) and columns (lettered A to XFD).\n\n- **Cell Reference**: Formed by column letter and row number (e.g., `A1`, `C15`).\n- **Formula Bar**: Located above the grid, displaying cell contents or active formulas.\n- **Name Box**: Shows active cell address or named ranges.\n\n## 2. Essential Excel Formatting Principles\nFormatting elevates raw data into professional reports:\n1. **Number Formatting**: Apply Currency (`$`), Percentage (`%`), and Date formats.\n2. **Text Alignment**: Wrap text and merge cells responsibly.\n3. **Table Styles**: Convert ranges to Excel Tables using `Ctrl + T`.\n\n```excel\n// Example Cell Formulas\n=SUM(A1:A10)\n=AVERAGE(B1:B20)\n```\n\n## 3. Keyboard Shortcuts Cheat Sheet\n- `Ctrl + C` / `Ctrl + V`: Copy and Paste\n- `Ctrl + Z`: Undo action\n- `Ctrl + Arrow Keys`: Jump to data region edge\n- `F4`: Toggle absolute cell references (`$A$1`)\n\n## Summary\nYou now understand the foundational layout of Microsoft Excel! Proceed to the practical exercise below.",
+          "key_takeaways": [
+            "Excel grids consist of rows, columns, and cell addresses.",
+            "Always use Ctrl + T to convert data into smart Excel Tables.",
+            "F4 toggles absolute cell referencing ($A$1)."
+          ],
+          "images": [
+            {
+              "image_url": "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800&q=80",
+              "caption": "Introduction to Excel Interface & Workbook Navigation: Neural Network Architecture & Deep Learning Model Pipelines",
+              "alt_text": "AI Architecture",
+              "placement_after_paragraph": 2
+            }
+          ],
+          "practice_exercise": {
+            "title": "Exercise 1: Cell Formatting & Data Entry",
+            "instructions": "Format column A as Date, column B as Text, and column C as Currency ($). Calculate the total in C10 using SUM.",
+            "starter_code": "=SUM(C2:C9)",
+            "hints": [
+              "Highlight C2 to C9 before entering SUM.",
+              "Use Ctrl + Shift + 4 for Currency format."
+            ],
+            "expected_output": "Total revenue sum displayed in currency format $15,450.00"
+          }
+        },
+        {
+          "lesson_id": "les-m1-l2",
+          "lesson_number": 2,
+          "title": "Cell References: Relative vs Absolute ($A$1)",
+          "estimated_minutes": 30,
+          "youtube_video_id": "",
+          "video_duration_seconds": 0,
+          "text_content": "# Master Relative, Absolute, and Mixed Cell References\n\nUnderstanding how Excel handles cell references during formula copying is crucial for building scalable financial models and error-free reports.\n\n## 1. Relative Cell References (`A1`)\nBy default, Excel cell references are relative. When you copy a formula down or across, the reference adjusts relative to the new cell position.\n\n## 2. Absolute Cell References (`$A$1`)\nAdding dollar signs (`$`) locks the reference. The formula will always refer to exact cell `A1` regardless of where it is copied.\n\n- **Formula**: `=B2 * $C$1` (where C1 contains tax rate 15%).\n\n## 3. Mixed Cell References (`$A1` or `A$1`)\nLocks either the column or the row independently for two-dimensional calculation grids.\n\n```excel\n// Multiplying Row header by Column header\n=$A2 * B$1\n```\n\n## Best Practices\n- Never hardcode constants inside formulas (e.g. `* 0.15`). Place tax rates or discount percentages in dedicated cells and lock them with `$F$2`.",
+          "key_takeaways": [
+            "Relative references adjust when copied.",
+            "Absolute references ($A$1) remain fixed.",
+            "Press F4 while editing a reference to cycle through reference types."
+          ],
+          "images": [
+            {
+              "image_url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
+              "caption": "Cell References: Relative vs Absolute ($A$1): Generative AI Prompt Engineering & Vector Embeddings",
+              "alt_text": "Generative AI",
+              "placement_after_paragraph": 2
+            }
+          ],
+          "practice_exercise": {
+            "title": "Exercise 2: Tax Calculation with Locked Rate",
+            "instructions": "Calculate tax for sales in B2:B10 using tax rate stored in cell $E$1.",
+            "starter_code": "=B2 * $E$1",
+            "hints": [
+              "Press F4 on E1 to lock the cell reference."
+            ],
+            "expected_output": "Accurate tax amounts computed without calculation errors."
+          }
+        }
+      ],
+      "module_image_url": "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800&q=80"
+    },
+    {
+      "module_number": 2,
+      "title": "Essential Excel Formulas & Text Functions",
+      "description": "Master core logical functions (IF, AND, OR), text manipulation (LEFT, RIGHT, CONCAT), and math aggregations.",
+      "estimated_hours": 4,
+      "lessons": [
+        {
+          "lesson_id": "les-m2-l1",
+          "lesson_number": 1,
+          "title": "Logical Functions: IF, AND, OR, IFS",
+          "estimated_minutes": 35,
+          "youtube_video_id": "",
+          "video_duration_seconds": 0,
+          "text_content": "# Master Logical Decision Making in Excel\n\nLogical functions allow your spreadsheet to dynamically evaluate conditions and output tailored results.\n\n## 1. The `IF` Function\nEvaluates a logical test and returns one value if true, another if false:\n```excel\n=IF(Sales >= 10000, \"Bonus\", \"Standard\")\n```\n\n## 2. Combining Conditions with `AND` and `OR`\n- **AND**: Returns TRUE if ALL conditions are met.\n- **OR**: Returns TRUE if AT LEAST ONE condition is met.\n\n```excel\n// Commission for High Performers in East Region\n=IF(AND(Region=\"East\", Sales>20000), \"Eligible\", \"Not Eligible\")\n```\n\n## 3. The `IFS` Function (Excel 2019 / 365)\nReplaces complex nested IF statements with clean syntax:\n```excel\n=IFS(Score>=90, \"A\", Score>=80, \"B\", Score>=70, \"C\", TRUE, \"F\")\n```",
+          "key_takeaways": [
+            "IF handles binary decisions.",
+            "AND requires all criteria to evaluate true.",
+            "IFS simplifies multi-tier grading systems."
+          ],
+          "images": [
+            {
+              "image_url": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80",
+              "caption": "Logical Functions: IF, AND, OR, IFS: Statistical Machine Learning Algorithms & Regression Plots",
+              "alt_text": "Machine Learning",
+              "placement_after_paragraph": 2
+            }
+          ],
+          "practice_exercise": {
+            "title": "Exercise: Bonus Eligibility Matrix",
+            "instructions": "Write an IF statement checking if Sales (B2) > 5000 AND Rating (C2) >= 4.",
+            "starter_code": "=IF(AND(B2>5000, C2>=4), \"Qualified\", \"Ineligible\")",
+            "hints": [
+              "Wrap condition inside AND()."
+            ],
+            "expected_output": "\"Qualified\" returned for high performers."
+          }
+        }
+      ],
+      "module_image_url": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80"
+    },
+    {
+      "module_number": 3,
+      "title": "Lookup Functions: VLOOKUP, XLOOKUP & INDEX-MATCH",
+      "description": "Perform relational data lookups across tables using VLOOKUP, XLOOKUP, and flexible INDEX-MATCH pairs.",
+      "estimated_hours": 4,
+      "lessons": [
+        {
+          "lesson_id": "les-m3-l1",
+          "lesson_number": 1,
+          "title": "Modern Data Lookups with XLOOKUP & VLOOKUP",
+          "estimated_minutes": 40,
+          "youtube_video_id": "",
+          "video_duration_seconds": 0,
+          "text_content": "# The Ultimate Guide to Lookups in Excel\n\nData lookup functions connect separate datasets by linking common keys (e.g., Employee ID, SKU Number).\n\n## 1. Traditional VLOOKUP\nSearches for a key in the first column of a table and retrieves values from specified column index:\n```excel\n=VLOOKUP(Lookup_Value, Table_Array, Col_Index_Num, FALSE)\n// Example\n=VLOOKUP(\"SKU-102\", A2:D100, 3, FALSE)\n```\n\n## 2. Modern XLOOKUP (Recommended)\nXLOOKUP replaces VLOOKUP and INDEX-MATCH with faster, bidirectional lookup power:\n```excel\n=XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found])\n// Example\n=XLOOKUP(E2, Employee[ID], Employee[Salary], \"Not Found\")\n```\n\n### Why XLOOKUP Wins:\n- Lookups left or right.\n- Defaults to exact match.\n- Built-in error handling (\"Not Found\").",
+          "key_takeaways": [
+            "VLOOKUP requires exact column counting and right-side retrieval.",
+            "XLOOKUP works in any direction with automatic error handling.",
+            "Always set exact match (FALSE / 0)."
+          ],
+          "images": [
+            {
+              "image_url": "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800&q=80",
+              "caption": "Modern Data Lookups with XLOOKUP & VLOOKUP: Neural Network Architecture & Deep Learning Model Pipelines",
+              "alt_text": "AI Architecture",
+              "placement_after_paragraph": 2
+            }
+          ],
+          "practice_exercise": {
+            "title": "Exercise: Fetch Employee Salary with XLOOKUP",
+            "instructions": "Write XLOOKUP formula to search for Employee ID in A2:A50 and pull Salary from D2:D50.",
+            "starter_code": "=XLOOKUP(G2, A2:A50, D2:D50, \"ID Missing\")",
+            "hints": [
+              "First parameter is lookup cell G2."
+            ],
+            "expected_output": "Correct salary returned instantly without column counting."
+          }
+        }
+      ],
+      "module_image_url": "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800&q=80"
+    },
+    {
+      "module_number": 4,
+      "title": "Pivot Tables & Dynamic Summary Reports",
+      "description": "Summarize thousands of rows of data instantly with Pivot Tables, Slicers, and Pivot Charts.",
+      "estimated_hours": 3.5,
+      "lessons": [
+        {
+          "lesson_id": "les-m4-l1",
+          "lesson_number": 1,
+          "title": "Building Interactive Pivot Tables & Slicers",
+          "estimated_minutes": 30,
+          "youtube_video_id": "",
+          "video_duration_seconds": 0,
+          "text_content": "# Pivot Tables: Turn Big Data into Insights\n\nPivot Tables allow you to summarize, group, filter, and analyze large datasets without writing complex formulas.\n\n## 1. Creating a Pivot Table\n1. Select your clean data range or Excel Table (`Ctrl + T`).\n2. Go to **Insert > PivotTable**.\n3. Choose destination worksheet.\n\n## 2. The Four Pivot Table Quadrants\n- **Filters**: Global dataset filtering.\n- **Columns**: Horizontal breakdown (e.g., Quarters).\n- **Rows**: Primary categories (e.g., Product Lines).\n- **Values**: Aggregation metrics (SUM, AVERAGE, COUNT).\n\n## 3. Adding Visual Slicers\nSlicers provide one-click interactive filtering buttons for executive dashboards!",
+          "key_takeaways": [
+            "Pivot Tables require clean data with column headers.",
+            "Slicers provide interactive visual filters.",
+            "Refresh Pivot Tables when underlying source data changes."
+          ],
+          "images": [
+            {
+              "image_url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
+              "caption": "Building Interactive Pivot Tables & Slicers: Generative AI Prompt Engineering & Vector Embeddings",
+              "alt_text": "Generative AI",
+              "placement_after_paragraph": 2
+            }
+          ],
+          "practice_exercise": {
+            "title": "Exercise: Regional Sales Pivot Table",
+            "instructions": "Create a Pivot Table placing \"Region\" in Rows and \"Revenue\" in Values summarized as SUM.",
+            "starter_code": "PivotTable Fields: Rows -> Region, Values -> SUM(Revenue)",
+            "hints": [
+              "Right-click values to format as Currency."
+            ],
+            "expected_output": "Clean summary table showing total sales per region."
+          }
+        }
+      ],
+      "module_image_url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80"
+    },
+    {
+      "module_number": 5,
+      "title": "Data Cleansing & Power Query Automation",
+      "description": "Clean dirty messy data, handle missing values, split columns, and automate ETL workflows using Power Query.",
+      "estimated_hours": 4,
+      "lessons": [
+        {
+          "lesson_id": "les-m5-l1",
+          "lesson_number": 1,
+          "title": "Data Cleaning: TRIM, CLEAN, TEXTJOIN & Flash Fill",
+          "estimated_minutes": 30,
+          "youtube_video_id": "",
+          "video_duration_seconds": 0,
+          "text_content": "# Master Excel Data Cleansing\n\nRaw data exported from CRMs or SQL databases is often messy—containing extra spaces, bad capitalization, or combined fields.\n\n## 1. Removing Irregular Spaces (`TRIM`)\n`TRIM` removes leading, trailing, and duplicate spaces:\n```excel\n=TRIM(A2)\n```\n\n## 2. Text Case Conversion (`UPPER`, `LOWER`, `PROPER`)\n- `PROPER(\"john DOE\")` -> `\"John Doe\"`\n- `UPPER(\"sku-100\")` -> `\"SKU-100\"`\n\n## 3. Flash Fill (`Ctrl + E`)\nExcel auto-detects patterns in adjacent columns to split names, extract phone numbers, or reformat dates automatically!",
+          "key_takeaways": [
+            "TRIM removes unwanted spaces.",
+            "PROPER formats names neatly.",
+            "Ctrl + E invokes intelligent Flash Fill."
+          ],
+          "images": [
+            {
+              "image_url": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80",
+              "caption": "Data Cleaning: TRIM, CLEAN, TEXTJOIN & Flash Fill: Statistical Machine Learning Algorithms & Regression Plots",
+              "alt_text": "Machine Learning",
+              "placement_after_paragraph": 2
+            }
+          ],
+          "practice_exercise": {
+            "title": "Exercise: Clean Customer Name Records",
+            "instructions": "Clean messy string \"  jANe   sMITh  \" into \"Jane Smith\".",
+            "starter_code": "=PROPER(TRIM(A2))",
+            "hints": [
+              "Nest TRIM inside PROPER."
+            ],
+            "expected_output": "\"Jane Smith\""
+          }
+        }
+      ],
+      "module_image_url": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80"
+    },
+    {
+      "module_number": 6,
+      "title": "Excel Charts, Visualization & Executive Dashboards",
+      "description": "Build professional bar charts, line trends, waterfall graphs, and interactive KPI dashboards.",
+      "estimated_hours": 3.5,
+      "lessons": [
+        {
+          "lesson_id": "les-m6-l1",
+          "lesson_number": 1,
+          "title": "Designing Professional Charts & KPI Scorecards",
+          "estimated_minutes": 35,
+          "youtube_video_id": "",
+          "video_duration_seconds": 0,
+          "text_content": "# Data Visualization Best Practices in Excel\n\nCharts communicate trends and insights faster than raw tables.\n\n## 1. Choosing the Right Chart Type\n- **Bar/Column Chart**: Category comparisons.\n- **Line Chart**: Time-series trend analysis (monthly sales).\n- **Pie Chart**: Single composition (limit to < 5 slices).\n- **Combo Chart**: Dual axis (e.g., Revenue $ + Margin %).\n\n## 2. Executive Formatting Rules\n1. **Remove Gridline Clutter**: Keep chart backgrounds clean.\n2. **Direct Data Labels**: Label bars directly instead of distant legends.\n3. **Consistent Palette**: Use corporate dark navy and subtle accent colors.",
+          "key_takeaways": [
+            "Match chart type to message.",
+            "Dual-axis combo charts blend lines and columns.",
+            "Keep visual noise minimal for executive presentation."
+          ],
+          "images": [
+            {
+              "image_url": "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800&q=80",
+              "caption": "Designing Professional Charts & KPI Scorecards: Neural Network Architecture & Deep Learning Model Pipelines",
+              "alt_text": "AI Architecture",
+              "placement_after_paragraph": 2
+            }
+          ],
+          "practice_exercise": {
+            "title": "Exercise: Create 12-Month Sales Trend Line Chart",
+            "instructions": "Highlight Month (A2:A13) and Sales (B2:B13) and insert a smooth Line Chart with data markers.",
+            "starter_code": "Insert -> Charts -> Line with Markers",
+            "hints": [
+              "Add title \"2026 Monthly Sales Trend\"."
+            ],
+            "expected_output": "Interactive trend line chart formatted cleanly."
+          }
+        }
+      ],
+      "module_image_url": "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800&q=80"
+    }
+  ],
+  "quizzes": [
+    {
+      "quiz_id": "quiz-mod-1",
+      "title": "Module 1 Checkpoint: Excel Fundamentals",
+      "quiz_type": "module_checkpoint",
+      "module_number": 1,
+      "passing_score": 70,
+      "max_attempts": 3,
+      "questions": [
+        {
+          "question": "Which key locks a cell reference to make it absolute ($A$1)?",
+          "type": "multiple_choice",
+          "options": [
+            "F2",
+            "F4",
+            "F8",
+            "Ctrl + L"
+          ],
+          "correct_answer_index": 1,
+          "explanation": "Pressing F4 while highlighting a cell reference adds dollar signs to lock row and column ($A$1)."
+        },
+        {
+          "question": "What shortcut converts a highlighted range into a smart Excel Table?",
+          "type": "multiple_choice",
+          "options": [
+            "Ctrl + T",
+            "Ctrl + Shift + N",
+            "Alt + F1",
+            "Ctrl + P"
+          ],
+          "correct_answer_index": 0,
+          "explanation": "Ctrl + T instantly formats selected data into an Excel Table with filtering and structured references."
+        }
+      ]
+    }
+  ],
+  "final_exam": {
+    "total_questions": 5,
+    "passing_score": 80,
+    "time_limit_minutes": 30,
+    "covers_all_modules": true,
+    "questions": [
+      {
+        "question": "Which lookup function allows bidirectional lookup without column number counting?",
+        "type": "multiple_choice",
+        "difficulty": "medium",
+        "weight": 20,
+        "options": [
+          "VLOOKUP",
+          "HLOOKUP",
+          "XLOOKUP",
+          "LOOKUP"
+        ],
+        "correct_answer_index": 2,
+        "explanation": "XLOOKUP searches in any direction and defaults to exact match without needing column index numbers."
+      },
+      {
+        "question": "Which formula cleans leading, trailing, and duplicate middle spaces from string \"  John   Doe \"?",
+        "type": "multiple_choice",
+        "difficulty": "easy",
+        "weight": 20,
+        "options": [
+          "CLEAN(A1)",
+          "TRIM(A1)",
+          "REMOVE(A1)",
+          "PROPER(A1)"
+        ],
+        "correct_answer_index": 1,
+        "explanation": "TRIM removes unwanted spaces while retaining single spaces between words."
+      }
+    ]
+  },
+  "projects": [
+    {
+      "project_number": 1,
+      "title": "Capstone: Executive Financial Data Dashboard",
+      "difficulty": "intermediate",
+      "estimated_hours": 6,
+      "modules_covered": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "deliverables": [
+        "Clean raw sales transaction dataset using TRIM and XLOOKUP",
+        "Build Pivot Table breakdown by Region and Quarter with interactive Slicers",
+        "Design 12-month Trend Line Chart with KPI summary cards"
+      ],
+      "portfolio_ready": true,
+      "job_interview_material": true
+    }
+  ],
+  "career_resources": {
+    "job_roles_prepared_for": [
+      "Data Analyst",
+      "Financial Analyst",
+      "Business Operations Manager"
+    ],
+    "average_salary_range": "$65,000 - $115,000 / year",
+    "resume_tips": [
+      "List \"Advanced Excel (XLOOKUP, Pivot Tables, Power Query)\" in technical skills section",
+      "Include link to Capstone Excel Financial Dashboard project"
+    ],
+    "interview_questions": [
+      "Difference between VLOOKUP and XLOOKUP?",
+      "How do you handle dirty data with duplicate spaces and wrong casing?"
+    ],
+    "networking_resources": [
+      "Excel World Championship Community",
+      "LernExAI Discord Analyst Group"
+    ]
+  },
+  "additional_resources": {
+    "downloadable_files": [
+      {
+        "file_name": "Excel_Formulas_Master_Cheatsheet.pdf",
+        "file_type": "PDF",
+        "purpose": "Quick reference guide"
+      },
+      {
+        "file_name": "Practice_Dataset_Sales_2026.xlsx",
+        "file_type": "XLSX",
+        "purpose": "Exercise workbook"
+      }
+    ],
+    "community_links": [
+      {
+        "platform": "Discord",
+        "url": "https://discord.gg/lernexai",
+        "purpose": "Community support & Q&A"
+      }
+    ]
+  }
+}
