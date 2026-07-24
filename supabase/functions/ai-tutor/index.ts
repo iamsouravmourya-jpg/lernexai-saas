@@ -11,6 +11,11 @@ const FREE_DAILY_LIMIT = 10;
 const PRO_DAILY_LIMIT = 100;
 const GEMINI_MODEL = "gemini-3-flash-preview";
 let resolvedGeminiModel = GEMINI_MODEL;
+const RETRYABLE_GEMINI_STATUSES = new Set([429, 503]);
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 interface StoredMessage {
   id: string;
@@ -207,7 +212,23 @@ RULES:
       },
     );
 
-    let geminiResponse = await generateWithModel(resolvedGeminiModel);
+    const generateWithRetry = async (model: string) => {
+      const attempts = 3;
+      for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        const response = await generateWithModel(model);
+        if (!RETRYABLE_GEMINI_STATUSES.has(response.status) || attempt === attempts) {
+          return response;
+        }
+
+        const backoffMs = attempt * 750;
+        console.warn("[ai-tutor] Gemini rate limited, retrying", { model, attempt, backoffMs });
+        await sleep(backoffMs);
+      }
+
+      return generateWithModel(model);
+    };
+
+    let geminiResponse = await generateWithRetry(resolvedGeminiModel);
     let geminiBody = await geminiResponse.json().catch(() => ({}));
 
     if (geminiResponse.status === 404) {
@@ -244,7 +265,7 @@ RULES:
 
       for (const candidateModel of candidateModels) {
         console.info("[ai-tutor] Trying available Gemini model", candidateModel);
-        const candidateResponse = await generateWithModel(candidateModel);
+        const candidateResponse = await generateWithRetry(candidateModel);
         const candidateBody = await candidateResponse.json().catch(() => ({}));
         geminiResponse = candidateResponse;
         geminiBody = candidateBody;
