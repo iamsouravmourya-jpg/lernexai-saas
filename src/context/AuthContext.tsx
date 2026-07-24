@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { getAppUrl } from "@/lib/siteUrl";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -48,12 +48,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           useEffect(() => {
             const initializeAuth = async () => {
-              const { data: { user: currentUser } } = await supabase.auth.getUser();
-              setUser(mapSupabaseUser(currentUser));
-              setLoading(false);
+              if (!isSupabaseConfigured) {
+                setUser(null);
+                setLoading(false);
+                return;
+              }
+
+              try {
+                const { data: { user: currentUser } } = await supabase.auth.getUser();
+                setUser(mapSupabaseUser(currentUser));
+              } catch (error) {
+                console.error("Auth initialization failed", error);
+                setUser(null);
+              } finally {
+                setLoading(false);
+              }
             };
 
-            initializeAuth();
+            void initializeAuth();
 
             // Listen for auth changes
             const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -65,6 +77,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }, []);
 
   const login = async (email: string, password: string) => {
+    if (!isSupabaseConfigured) {
+      throw new Error("Supabase environment variables are missing on this deployment.");
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -78,6 +94,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signup = async (email: string, password: string, firstName?: string, lastName?: string) => {
+    if (!isSupabaseConfigured) {
+      throw new Error("Supabase environment variables are missing on this deployment.");
+    }
+
     const fullName = [firstName?.trim(), lastName?.trim()].filter(Boolean).join(" ") || email.split("@")[0];
 
     const { data, error } = await supabase.auth.signUp({
@@ -104,6 +124,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginWithGoogle = async () => {
+    if (!isSupabaseConfigured) {
+      throw new Error("Supabase environment variables are missing on this deployment.");
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -124,6 +148,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshUser = async () => {
+    if (!isSupabaseConfigured) {
+      setUser(null);
+      return;
+    }
+
     const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
     setUser(mapSupabaseUser(data.user));
