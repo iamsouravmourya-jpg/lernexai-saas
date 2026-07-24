@@ -107,7 +107,7 @@ export default function AIChatPanel({ lesson, planType = "free" }: AIChatPanelPr
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-100 text-purple-700"><Bot className="h-5 w-5" aria-hidden="true" /></span>
-            <div><h2 className="font-bold text-gray-900">AI Learning Assistant</h2><p className="text-xs text-gray-500">Powered by Groq</p></div>
+            <div><h2 className="font-bold text-gray-900">AI Learning Assistant</h2><p className="text-xs text-gray-500">Powered by AI</p></div>
           </div>
           <span className="inline-flex max-w-36 items-center gap-1 truncate rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700" title={lesson.title}><Sparkles className="h-3 w-3 shrink-0" aria-hidden="true" />{lesson.title}</span>
         </div>
