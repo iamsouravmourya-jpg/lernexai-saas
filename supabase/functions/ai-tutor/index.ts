@@ -156,18 +156,7 @@ serve(async (req) => {
     }
     reservedUsage = true;
 
-    const { data: recentRows } = await supabase
-      .from("ai_chat_messages")
-      .select("role, content, created_at")
-      .eq("user_id", user.id)
-      .eq("lesson_id", lesson.id)
-      .order("created_at", { ascending: false })
-      .limit(8);
 
-    const recentHistory = ((recentRows || []) as StoredMessage[]).reverse().map(item => ({
-      role: item.role === "assistant" ? "model" : "user",
-      parts: [{ text: item.content }],
-    }));
 
     const lessonContent = String(lesson.content || "").slice(0, 14000);
     const systemPrompt = `You are LernexAI's helpful AI tutor and study companion.
@@ -180,7 +169,8 @@ Authoritative lesson material:
 ${lessonContent}
 
 RULES:
-- Answer the user's question directly and helpfully.
+- Answer only the user's current question directly and helpfully.
+- Do not rely on previous chat turns or mixed conversation context.
 - Do not refuse just because the question is not about the current lesson.
 - Use the lesson/course context when it helps, but if the question is broader, answer with general knowledge.
 - Match the learner's English, Hindi, or natural Hinglish.
@@ -199,7 +189,6 @@ RULES:
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: systemPrompt }] },
           contents: [
-            ...recentHistory,
             { role: "user", parts: [{ text: question }] },
           ],
           generationConfig: {
