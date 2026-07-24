@@ -9,7 +9,10 @@ const corsHeaders = {
 
 const FREE_DAILY_LIMIT = 10;
 const PRO_DAILY_LIMIT = 100;
-const GROQ_MODEL = Deno.env.get("GROQ_MODEL") || "llama-3.1-8b-instant";
+const GROQ_MODELS = (Deno.env.get("GROQ_MODELS") || "llama-3.1-8b-instant,llama-3.1-70b-versatile,llama-3.3-70b-versatile")
+  .split(",")
+  .map((model) => model.trim())
+  .filter(Boolean);
 const RETRYABLE_GROQ_STATUSES = new Set([429, 503]);
 
 function sleep(ms: number) {
@@ -205,14 +208,14 @@ RULES:
     });
 
     const generateWithRetry = async (model: string) => {
-      const attempts = 3;
+      const attempts = 4;
       for (let attempt = 1; attempt <= attempts; attempt += 1) {
         const response = await generateWithGroq(model);
         if (!RETRYABLE_GROQ_STATUSES.has(response.status) || attempt === attempts) {
           return response;
         }
 
-        const backoffMs = attempt * 750;
+        const backoffMs = 1000 * (2 ** (attempt - 1));
         console.warn("[ai-tutor] Groq rate limited, retrying", { model, attempt, backoffMs });
         await sleep(backoffMs);
       }
@@ -220,24 +223,35 @@ RULES:
       return generateWithGroq(model);
     };
 
-    const groqResponse = await generateWithRetry(GROQ_MODEL);
-    const groqBody = await groqResponse.json().catch(() => ({}));
+    let groqResponse: Response | null = null;
+    let groqBody: any = {};
+    let usedModel = GROQ_MODELS[0] || "llama-3.1-8b-instant";
 
-    if (!groqResponse.ok) {
-      console.error("[ai-tutor] Groq request failed", groqResponse.status, groqBody);
+    for (const model of GROQ_MODELS) {
+      usedModel = model;
+      groqResponse = await generateWithRetry(model);
+      groqBody = await groqResponse.json().catch(() => ({}));
+
+      if (groqResponse.ok) break;
+      if (![429, 503, 404].includes(groqResponse.status)) break;
+    }
+
+    if (!groqResponse || !groqResponse.ok) {
+      const status = groqResponse?.status || 502;
+      console.error("[ai-tutor] Groq request failed", { status, model: usedModel, body: groqBody });
       await supabase.rpc("release_ai_tutor_message", { p_user_id: user.id });
       reservedUsage = false;
       const providerMessage = String(groqBody?.error?.message || groqBody?.message || "");
-      const errorMessage = groqResponse.status === 429
+      const errorMessage = status === 429
         ? "AI tutor is busy right now. Please try again shortly."
-        : groqResponse.status === 401 || groqResponse.status === 403
+        : status === 401 || status === 403
           ? "The Groq API key is invalid or unauthorized. Add a valid Groq key in Supabase secrets."
-          : groqResponse.status === 404
-            ? `The configured Groq model (${GROQ_MODEL}) is not available for this API key.`
-            : groqResponse.status === 400
+          : status === 404
+            ? `The configured Groq models are not available for this API key.`
+            : status === 400
               ? `Groq rejected the tutor request. ${providerMessage || "Check the configured API key and model access."}`
               : "AI tutor could not generate a response. Please try again.";
-      return jsonResponse({ error: errorMessage }, groqResponse.status === 429 ? 429 : 502);
+      return jsonResponse({ error: errorMessage }, status === 429 ? 429 : 502);
     }
 
     const rawContent = String(groqBody?.choices?.[0]?.message?.content || "").trim();
@@ -247,7 +261,7 @@ RULES:
       structuredAnswer = JSON.parse(jsonPayload || "null");
     } catch {
       console.error("[ai-tutor] Groq returned non-JSON output", {
-        model: GROQ_MODEL,
+        model: usedModel,
         contentPreview: rawContent.slice(0, 200),
       });
     }
