@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 
 export default function AuthCallback() {
   const [, setLocation] = useLocation();
+  const { refreshUser } = useAuth();
   const [message, setMessage] = useState("Completing sign in…");
 
   useEffect(() => {
@@ -14,11 +16,18 @@ export default function AuthCallback() {
       const code = url.searchParams.get("code");
 
       if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
         if (!active) return;
         if (error) {
           setMessage(error.message || "Could not complete sign in.");
           setTimeout(() => setLocation("/auth"), 1500);
+          return;
+        }
+
+        if (data.session) {
+          await refreshUser();
+          if (!active) return;
+          setLocation("/dashboard", { replace: true });
           return;
         }
       }
@@ -27,7 +36,9 @@ export default function AuthCallback() {
       if (!active) return;
 
       if (data.session) {
-        setLocation("/dashboard");
+        await refreshUser();
+        if (!active) return;
+        setLocation("/dashboard", { replace: true });
         return;
       }
 

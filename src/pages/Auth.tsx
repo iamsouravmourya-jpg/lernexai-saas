@@ -52,7 +52,8 @@ export default function Auth() {
       } else {
         await login(email, password);
       }
-      setLocation("/dashboard");
+
+      setLocation("/dashboard", { replace: true });
     } catch (err: any) {
       setError(err.message || "Authentication failed");
     } finally {
