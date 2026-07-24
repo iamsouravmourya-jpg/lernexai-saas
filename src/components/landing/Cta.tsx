@@ -2,9 +2,11 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/context/useLang";
 import { useLocation } from "wouter";
+import { useAuth } from "@/context/AuthContext";
 
 export function Cta() {
   const { t } = useLang();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
 
   return (
@@ -42,8 +44,8 @@ export function Cta() {
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            <Button size="lg" className="bg-white text-indigo-600 hover:bg-indigo-50 h-14 px-8 text-lg font-bold rounded-full shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:scale-105 transition-all" onClick={() => setLocation("/auth")}>
-              {t("cta.btn")}
+            <Button size="lg" className="bg-white text-indigo-600 hover:bg-indigo-50 h-14 px-8 text-lg font-bold rounded-full shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:scale-105 transition-all" onClick={() => setLocation(user ? "/dashboard" : "/auth")}>
+              {user ? "Go to Dashboard" : t("cta.btn")}
             </Button>
           </motion.div>
         </div>

@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Globe, Menu, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useLang } from "@/context/useLang";
+import { useAuth } from "@/context/AuthContext";
 
 export function Navbar() {
   const { lang, setLang, t } = useLang();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const primaryPath = user ? "/dashboard" : "/auth";
 
   return (
     <motion.header 
@@ -66,11 +69,11 @@ export function Navbar() {
           </div>
 
           <div className="hidden items-center gap-2 sm:flex">
-            <Button variant="ghost" className="rounded-full" onClick={() => setLocation("/auth")}>{t("nav.login")}</Button>
-            <Button variant="gradient" className="rounded-full shadow-indigo-200" onClick={() => setLocation("/auth")}>{t("nav.start")}</Button>
+            <Button variant="ghost" className="rounded-full" onClick={() => setLocation(primaryPath)}>{user ? "Dashboard" : t("nav.login")}</Button>
+            <Button variant="gradient" className="rounded-full shadow-indigo-200" onClick={() => setLocation(primaryPath)}>{user ? "Dashboard" : t("nav.start")}</Button>
           </div>
 
-          <Button variant="gradient" size="sm" className="rounded-full shadow-indigo-200 sm:hidden" onClick={() => setLocation("/auth")}>{t("nav.start")}</Button>
+          <Button variant="gradient" size="sm" className="rounded-full shadow-indigo-200 sm:hidden" onClick={() => setLocation(primaryPath)}>{user ? "Dashboard" : t("nav.start")}</Button>
 
           <button
             type="button"
@@ -91,7 +94,7 @@ export function Navbar() {
             <button onClick={() => setLang("en")} className={`flex-1 rounded-full px-2.5 py-1.5 transition-all ${lang === "en" ? "bg-white text-slate-900 shadow-sm border border-slate-200/80" : "text-slate-400 hover:text-slate-600"}`}>EN</button>
             <button onClick={() => setLang("hi")} className={`flex-1 rounded-full px-2.5 py-1.5 transition-all ${lang === "hi" ? "bg-white text-slate-900 shadow-sm border border-slate-200/80" : "text-slate-400 hover:text-slate-600"}`}>HI</button>
           </div>
-          <Button variant="ghost" className="mt-3 w-full rounded-full border border-slate-200" onClick={() => { setMobileNavOpen(false); setLocation("/auth"); }}>{t("nav.login")}</Button>
+          <Button variant="ghost" className="mt-3 w-full rounded-full border border-slate-200" onClick={() => { setMobileNavOpen(false); setLocation(primaryPath); }}>{user ? "Dashboard" : t("nav.login")}</Button>
         </div>
       )}
       </div>

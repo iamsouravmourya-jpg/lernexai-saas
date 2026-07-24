@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useLocation } from "wouter";
 import { Navbar } from "@/components/landing/Navbar";
 import { Hero } from "@/components/landing/Hero";
 import { Problem } from "@/components/landing/Problem";
@@ -8,8 +10,18 @@ import { Certificate } from "@/components/landing/Certificate";
 import { FAQ } from "@/components/landing/FAQ";
 import { Cta } from "@/components/landing/Cta";
 import { Footer } from "@/components/landing/Footer";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Home() {
+  const { user, loading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!loading && user) {
+      setLocation("/dashboard", { replace: true });
+    }
+  }, [loading, user, setLocation]);
+
   return (
     <div className="relative min-h-screen bg-white text-foreground overflow-x-hidden font-sans selection:bg-indigo-100 selection:text-indigo-900">
       {/* Global subtle texture */}
