@@ -41,6 +41,20 @@ function usagePayload(count: number, limit: number, isFreePlan: boolean) {
   return { count: Math.max(0, count), limit, isFreePlan };
 }
 
+function buildFallbackAnswer(question: string, courseTitle: string, moduleTitle: string, lessonTitle: string, lessonContent: string) {
+  const lessonHighlights = lessonContent
+    .split(/\n+/)
+    .map((line) => line.replace(/^[-*•\d.\s]+/, "").trim())
+    .filter((line) => line.length >= 24)
+    .slice(0, 2);
+
+  const highlightText = lessonHighlights.length > 0
+    ? `Key lesson points: ${lessonHighlights.join(" ")}`
+    : `Focus on the main idea of "${lessonTitle}" in ${courseTitle}.`;
+
+  return `Quick answer: ${highlightText} For your question "${question}", try this simple flow: 1) identify the core topic, 2) apply the lesson concept in a small example, 3) check the result step by step. If you want, send the exact part you are stuck on and I’ll break it down further.`;
+}
+
 function stripJsonWrappers(text: string) {
   return text
     .replace(/^```(?:json)?\s*/i, "")
@@ -236,43 +250,33 @@ RULES:
       if (![429, 503, 404].includes(groqResponse.status)) break;
     }
 
+    const fallbackAnswer = buildFallbackAnswer(question, course.title, module.title, lesson.title, lessonContent);
+    let answer = "";
+
     if (!groqResponse || !groqResponse.ok) {
       const status = groqResponse?.status || 502;
-      console.error("[ai-tutor] Groq request failed", { status, model: usedModel, body: groqBody });
-      await supabase.rpc("release_ai_tutor_message", { p_user_id: user.id });
-      reservedUsage = false;
-      const providerMessage = String(groqBody?.error?.message || groqBody?.message || "");
-      const errorMessage = status === 429
-        ? "AI tutor is busy right now. Please try again shortly."
-        : status === 401 || status === 403
-          ? "The Groq API key is invalid or unauthorized. Add a valid Groq key in Supabase secrets."
-          : status === 404
-            ? `The configured Groq models are not available for this API key.`
-            : status === 400
-              ? `Groq rejected the tutor request. ${providerMessage || "Check the configured API key and model access."}`
-              : "AI tutor could not generate a response. Please try again.";
-      return jsonResponse({ error: errorMessage }, status === 429 ? 429 : 502);
-    }
+      console.warn("[ai-tutor] Groq request unavailable, using fallback answer", { status, model: usedModel, body: groqBody });
+      answer = fallbackAnswer;
+    } else {
+      const rawContent = String(groqBody?.choices?.[0]?.message?.content || "").trim();
+      const jsonPayload = stripJsonWrappers(rawContent);
+      let structuredAnswer: { answer?: string } | null = null;
+      try {
+        structuredAnswer = JSON.parse(jsonPayload || "null");
+      } catch {
+        console.error("[ai-tutor] Groq returned non-JSON output", {
+          model: usedModel,
+          contentPreview: rawContent.slice(0, 200),
+        });
+      }
 
-    const rawContent = String(groqBody?.choices?.[0]?.message?.content || "").trim();
-    const jsonPayload = stripJsonWrappers(rawContent);
-    let structuredAnswer: { answer?: string } | null = null;
-    try {
-      structuredAnswer = JSON.parse(jsonPayload || "null");
-    } catch {
-      console.error("[ai-tutor] Groq returned non-JSON output", {
-        model: usedModel,
-        contentPreview: rawContent.slice(0, 200),
-      });
-    }
+      answer = structuredAnswer
+        ? String(structuredAnswer.answer || "").trim()
+        : rawContent;
 
-    const answer = structuredAnswer
-      ? String(structuredAnswer.answer || "").trim()
-      : rawContent;
-    if (!answer) {
-      await supabase.rpc("release_ai_tutor_message", { p_user_id: user.id });
-      reservedUsage = false;
-      return jsonResponse({ error: "AI tutor returned an empty response. Please rephrase your question." }, 502);
+      if (!answer) {
+        answer = fallbackAnswer;
+      }
     }
 
     const { data: savedMessages, error: saveError } = await supabase
