@@ -3,17 +3,16 @@ import { useAuth } from "@/context/AuthContext";
 import { Link, useLocation } from "wouter";
 
 export default function Auth() {
-  const { login, signup, loginWithGoogle, user } = useAuth(); // Get user from context
+  const { login, signup, loginWithGoogle, user, loading } = useAuth();
   const [, setLocation] = useLocation();
   const [isSignUp, setIsSignUp] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  // Redirect if user is already logged in
   useEffect(() => {
-    if (user) {
-      setLocation("/dashboard");
+    if (!loading && user) {
+      setLocation("/dashboard", { replace: true });
     }
-  }, [user, setLocation]);
+  }, [loading, user, setLocation]);
   
   // Form state
   const [firstName, setFirstName] = useState("");
@@ -35,6 +34,17 @@ export default function Auth() {
       setGoogleLoading(false);
     }
   };
+
+  if (loading || user) {
+    return (
+      <div className="min-h-dvh flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4" />
+          <p className="text-gray-600">Checking your session...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

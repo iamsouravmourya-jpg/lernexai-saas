@@ -12,15 +12,44 @@ import { Cta } from "@/components/landing/Cta";
 import { Footer } from "@/components/landing/Footer";
 import { useAuth } from "@/context/AuthContext";
 
+function AuthRedirectScreen({ message }: { message?: string }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4" />
+        <p className="text-gray-600">{message ?? "Checking your session..."}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
 
+  const oauthCallbackSearch =
+    typeof window !== "undefined" && new URL(window.location.href).searchParams.has("code")
+      ? window.location.search
+      : null;
+
   useEffect(() => {
+    if (oauthCallbackSearch) {
+      setLocation(`/auth/callback${oauthCallbackSearch}`, { replace: true });
+      return;
+    }
+
     if (!loading && user) {
       setLocation("/dashboard", { replace: true });
     }
-  }, [loading, user, setLocation]);
+  }, [loading, user, setLocation, oauthCallbackSearch]);
+
+  if (oauthCallbackSearch || loading || user) {
+    return (
+      <AuthRedirectScreen
+        message={oauthCallbackSearch ? "Completing sign in..." : undefined}
+      />
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-white text-foreground overflow-x-hidden font-sans selection:bg-indigo-100 selection:text-indigo-900">

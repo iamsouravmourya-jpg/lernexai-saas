@@ -51,7 +51,7 @@ export default function AuthCallback() {
     return () => {
       active = false;
     };
-  }, [setLocation]);
+  }, [setLocation, refreshUser]);
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-gray-50 px-6 text-center">
