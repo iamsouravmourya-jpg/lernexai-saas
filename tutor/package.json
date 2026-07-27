@@ -1,0 +1,25 @@
+{
+  "name": "ai-tutor-standalone",
+  "version": "1.0.0",
+  "description": "Standalone, embeddable Groq-powered AI Tutor Assistant for online courses & web apps",
+  "main": "backend/tutor-server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node backend/tutor-server.js",
+    "dev": "node backend/tutor-server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "groq-sdk": "^0.19.0"
+  },
+  "keywords": [
+    "ai-tutor",
+    "groq",
+    "edtech",
+    "lms-chat",
+    "course-assistant"
+  ],
+  "author": "AI Studio Build",
+  "license": "MIT"
+}
