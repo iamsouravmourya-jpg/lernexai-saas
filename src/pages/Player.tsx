@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { fetchCompletedLessonIds, fetchCourseById, updateLessonProgress, getUserProgress, updateEnrollmentProgress } from "@/lib/course";
 import { Course, Module, Lesson } from "@/lib/course";
 import ModuleList from "@/components/ModuleList";
-import AITutor from "@/components/AITutor";
+import AIChatPanel from "@/components/AIChatPanel";
 
 export default function Player() {
   const { id } = useParams<{ id: string }>();
@@ -390,7 +390,7 @@ export default function Player() {
           </div>
 
           {/* AI Tutor */}
-          <AITutor courseId={id} lessonId={currentLessonId} />
+          <AIChatPanel lesson={currentLesson} planType={user?.plan_type || "free"} />
         </div>
       </div>
     </div>

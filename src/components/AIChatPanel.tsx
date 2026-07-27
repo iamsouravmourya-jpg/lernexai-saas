@@ -49,9 +49,6 @@ export default function AIChatPanel({ lesson, planType = "free" }: AIChatPanelPr
     () => [
       "Explain this lesson simply",
       "What are the key takeaways?",
-      "Give me a practical example",
-      "Explain this in Hindi",
-      "Give me a quick practice task",
     ],
     [],
   );
