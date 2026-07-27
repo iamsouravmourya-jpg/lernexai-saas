@@ -28,12 +28,15 @@ Learning experience:
 - Final exam flow with 25 questions, 30-minute timer, server-side grading, pass/fail results, and completion state that feeds the certificate journey.
 
 AI tutor:
-- Lesson-aware AI assistant available inside the learning experience.
-- Suggested prompts for quick learning support.
+- Lesson-aware AI assistant available inside the learning experience using Groq API.
+- Reduced suggested prompts (2 options) for cleaner UI.
 - English, Hindi, and Hinglish-style interaction in the UI.
-- Daily message usage limits for Free and Pro users.
+- Daily message usage limits for Free and Pro users (10 free, 100 pro).
 - Chat history loading and persistence through Supabase-backed tutor logic.
 - Course-only guardrail to keep answers relevant to the current learning context.
+- Multiple Groq API keys support for load balancing and rate limit management.
+- Enhanced logging for debugging chat save issues.
+- Fixed chat message order (question appears before answer in history).
 
 Payments and plans:
 - Razorpay-based Pro upgrade flow using real order creation and payment verification.
@@ -118,11 +121,12 @@ Learning and assessment:
 - Module coverage is distributed across the Excel course modules.
 
 AI tutor:
-- Accessible from the learning page.
-- Lesson context is used to generate relevant responses.
-- Free and Pro usage limits are enforced in the UI.
-- Chat history can be loaded and restored.
+- Accessible from the learning page using real AIChatPanel component.
+- Lesson context is used to generate relevant responses via Groq API.
+- Free and Pro usage limits are enforced in the UI (10 free, 100 pro).
+- Chat history can be loaded and restored with correct chronological order.
 - Responses are constrained to the current course context.
+- Multiple API keys support for load balancing across Groq instances.
 
 Payments:
 - Real Razorpay checkout flow.
