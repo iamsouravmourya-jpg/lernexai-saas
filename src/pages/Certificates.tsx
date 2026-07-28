@@ -223,8 +223,8 @@ export default function Certificates() {
 
                   <div className="mt-5 flex flex-wrap gap-3">
                     {course.certificatePurchased ? (
-                      <button onClick={() => setLocation(`/certificate/${course.id}?score=${course.examScore ?? ""}`)} className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700">
-                        <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Download certificate
+                      <button onClick={() => setLocation(`/certificate/${course.id}?score=${course.examScore ?? ""}&purchased=true`)} className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700">
+                        <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> View & Download certificate
                       </button>
                     ) : isReadyToBuy ? (
                       <button onClick={() => setLocation(`/certificate/${course.id}?score=${course.examScore ?? ""}`)} className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-700">
