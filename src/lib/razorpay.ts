@@ -145,7 +145,7 @@ export async function openRazorpayCheckout(options: {
     amount: options.amount,
     currency: "INR",
     name: "LernexAI",
-    description: "LernexAI Pro subscription",
+    description: options.orderId.includes("cert") ? "LernexAI Certificate" : "LernexAI Pro subscription",
     order_id: options.orderId,
     prefill: {
       name: options.userName,

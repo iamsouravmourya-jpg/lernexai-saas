@@ -38,10 +38,28 @@ export default function Dashboard() {
 
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem("lernexai_certificate_purchase");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setCompletedCourse(parsed);
+      // Check all certificate purchases from local storage
+      const purchases: { courseId: string; courseTitle: string; completedAt: string }[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith("lernexai_certificate_purchase_")) {
+          const stored = localStorage.getItem(key);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed.purchased) {
+              purchases.push({
+                courseId: parsed.courseId,
+                courseTitle: parsed.courseTitle,
+                completedAt: parsed.completedAt
+              });
+            }
+          }
+        }
+      }
+      // Get the most recent purchase
+      if (purchases.length > 0) {
+        const latest = purchases.sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())[0];
+        setCompletedCourse(latest);
       }
     } catch {
       setCompletedCourse(null);
