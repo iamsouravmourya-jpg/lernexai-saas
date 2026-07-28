@@ -49,13 +49,14 @@ export default function CertificateCheckoutPage() {
         setScore(Number.isFinite(scoreFromQuery) && scoreFromQuery > 0 ? scoreFromQuery : 85);
         setFullName(user?.name || "");
 
-        // Check if certificate was already purchased
+        // Check if certificate was already purchased for this specific course
         if (typeof window !== "undefined") {
-          const purchaseData = window.localStorage.getItem("lernexai_certificate_purchase");
+          const purchaseKey = `lernexai_certificate_purchase_${courseId}`;
+          const purchaseData = window.localStorage.getItem(purchaseKey);
           if (purchaseData) {
             try {
               const parsed = JSON.parse(purchaseData);
-              if (parsed.courseId === courseId) {
+              if (parsed.courseId === courseId && parsed.purchased) {
                 setIsPurchased(true);
               }
             } catch {
@@ -107,9 +108,10 @@ export default function CertificateCheckoutPage() {
             if (verification.success) {
               setIsPurchased(true);
               if (typeof window !== "undefined" && course) {
+                const purchaseKey = `lernexai_certificate_purchase_${courseId}`;
                 window.localStorage.setItem(
-                  "lernexai_certificate_purchase",
-                  JSON.stringify({ courseId, courseTitle: course.title, completedAt: new Date().toISOString() })
+                  purchaseKey,
+                  JSON.stringify({ courseId, courseTitle: course.title, purchased: true, completedAt: new Date().toISOString() })
                 );
               }
               toast({ title: "Certificate unlocked", description: "Your verified certificate is ready to download.", variant: "default" });
@@ -182,6 +184,7 @@ export default function CertificateCheckoutPage() {
                 print-color-adjust: exact !important;
             }
             .corner-ornament { display: block !important; }
+            .print-hide { display: none !important; }
         }
 
         body {
@@ -194,6 +197,21 @@ export default function CertificateCheckoutPage() {
             font-family: 'Lora', serif;
             padding: 40px 20px;
             gap: 25px;
+        }
+
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: #12294a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
         }
 
         .certificate {
@@ -299,6 +317,7 @@ export default function CertificateCheckoutPage() {
     </style>
 </head>
 <body>
+    <button class="print-btn print-hide" onclick="window.print()">Download as PDF</button>
     <div class="certificate">
         <div class="corner-ornament co-tl"></div>
         <div class="corner-ornament co-tr"></div>
@@ -392,13 +411,11 @@ export default function CertificateCheckoutPage() {
 </body>
 </html>`;
 
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${course.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-certificate.html`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const newWindow = window.open("", "_blank");
+    if (newWindow) {
+      newWindow.document.write(html);
+      newWindow.document.close();
+    }
   };
 
   const handleShare = async () => {
