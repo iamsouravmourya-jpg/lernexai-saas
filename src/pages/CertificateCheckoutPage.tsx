@@ -46,7 +46,7 @@ export default function CertificateCheckoutPage() {
 
         if (!active) return;
         setCourse(loadedCourse);
-        setScore(Number.isFinite(scoreFromQuery) && scoreFromQuery > 0 ? scoreFromQuery : 85);
+        setScore(Number.isFinite(scoreFromQuery) && scoreFromQuery > 0 ? scoreFromQuery : null);
         setFullName(user?.name || "");
 
         // Check if certificate was already purchased for this specific course
@@ -137,7 +137,8 @@ export default function CertificateCheckoutPage() {
     if (!course || score === null || !fullName.trim()) return;
 
     const issuedDate = formatDate(new Date());
-    const certId = `LXAI-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`;
+    // Generate consistent certificate ID based on course and user
+    const certId = `LXAI-${new Date().getFullYear()}-${courseId.slice(0, 4).toUpperCase()}-${Math.floor(score)}`;
     const verifyUrl = `https://lernexai.com/verify/${certId}`;
 
     const html = `<!DOCTYPE html>
@@ -371,7 +372,7 @@ export default function CertificateCheckoutPage() {
             <div class="course-name">${course.title}</div>
             
             <div class="grade-display">
-                Grade Achieved: <span class="grade-text-simple">" ${grade?.grade} "</span>
+                Grade Achieved: <span class="grade-text-simple">" ${grade?.grade} (${grade?.label}) "</span>
             </div>
 
             <div class="footer-section">
@@ -534,7 +535,7 @@ export default function CertificateCheckoutPage() {
             <ul className="mt-4 space-y-3 text-sm text-slate-600">
               <li className="rounded-2xl bg-slate-50 p-3">• Verified certificate for your completed course</li>
               <li className="rounded-2xl bg-slate-50 p-3">• Your final score and grade shown on the certificate</li>
-              <li className="rounded-2xl bg-slate-50 p-3">• Download as SVG and share instantly</li>
+              <li className="rounded-2xl bg-slate-50 p-3">• Download as PDF and share instantly</li>
             </ul>
             <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
               <p className="font-semibold">One-time fee</p>
