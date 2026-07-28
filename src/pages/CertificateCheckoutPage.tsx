@@ -311,7 +311,22 @@ export default function CertificateCheckoutPage() {
             <div class="header">
                 <div class="brand">
                     <div class="logo">
-                        <svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.45l8.27 14.3H3.73L12 5.45zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <rect width="32" height="32" rx="8" fill="url(#gradient)"></rect>
+                            <path d="M16 4L6 10L16 16L26 10L16 4Z" fill="white" fill-opacity="0.9"></path>
+                            <path d="M6 22L16 28L26 22" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M6 10V22" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M26 10V22" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M16 16V28" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <circle cx="16" cy="16" r="2" fill="white" fill-opacity="0.8"></circle>
+                            <defs>
+                                <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#4F46E5"></stop>
+                                    <stop offset="0.5" stop-color="#7C3AED"></stop>
+                                    <stop offset="1" stop-color="#3730A3"></stop>
+                                </linearGradient>
+                            </defs>
+                        </svg>
                     </div>
                     <div>
                         <h2>LERNEXAI</h2>
