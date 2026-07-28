@@ -48,6 +48,22 @@ export default function CertificateCheckoutPage() {
         setCourse(loadedCourse);
         setScore(Number.isFinite(scoreFromQuery) && scoreFromQuery > 0 ? scoreFromQuery : 85);
         setFullName(user?.name || "");
+
+        // Check if certificate was already purchased
+        if (typeof window !== "undefined") {
+          const purchaseData = window.localStorage.getItem("lernexai_certificate_purchase");
+          if (purchaseData) {
+            try {
+              const parsed = JSON.parse(purchaseData);
+              if (parsed.courseId === courseId) {
+                setIsPurchased(true);
+              }
+            } catch {
+              // Invalid data, ignore
+            }
+          }
+        }
+
         setLoading(false);
       } catch (loadError) {
         if (!active) return;
@@ -119,32 +135,253 @@ export default function CertificateCheckoutPage() {
     if (!course || score === null || !fullName.trim()) return;
 
     const issuedDate = formatDate(new Date());
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
-        <rect width="1400" height="900" fill="#f8f7ff"/>
-        <rect x="60" y="60" width="1280" height="780" rx="36" fill="#ffffff" stroke="#d8d0ff" stroke-width="3"/>
-        <rect x="90" y="90" width="1220" height="720" rx="28" fill="url(#bg)"/>
-        <defs>
-          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#6d28d9"/>
-            <stop offset="100%" stop-color="#4338ca"/>
-          </linearGradient>
-        </defs>
-        <circle cx="1160" cy="220" r="180" fill="white" fill-opacity="0.12"/>
-        <circle cx="250" cy="700" r="150" fill="white" fill-opacity="0.08"/>
-        <text x="700" y="220" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#f5f3ff" letter-spacing="4">CERTIFICATE OF COMPLETION</text>
-        <text x="700" y="290" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="60" font-weight="800" fill="#ffffff">${fullName.trim()}</text>
-        <text x="700" y="350" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" fill="#ede9fe">has successfully completed</text>
-        <text x="700" y="410" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="38" font-weight="700" fill="#ffffff">${course.title}</text>
-        <text x="700" y="470" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" fill="#ddd6fe">with a score of ${score}% and grade ${grade?.grade} (${grade?.label})</text>
-        <text x="700" y="610" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" fill="#ffffff">Issued on ${issuedDate}</text>
-      </svg>`;
+    const certId = `LXAI-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`;
+    const verifyUrl = `https://lernexai.com/verify/${certId}`;
 
-    const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate - ${course.title}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0a1628;
+            --navy-md: #12294a;
+            --navy-light: #1a3a5c;
+            --green: #064e3b;
+            --gold: #ca8a04;
+            --gold-light: #eab308;
+            --gold-dark: #a16207;
+            --cream: #fffbeb;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+            body {
+                background: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .certificate {
+                width: 297mm !important;
+                height: 210mm !important;
+                box-shadow: none !important;
+                border: 10px solid #12294a !important;
+                outline: 2px solid #ca8a04 !important;
+                transform: none !important;
+                margin: 0 auto !important;
+                page-break-after: avoid;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .corner-ornament { display: block !important; }
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            background: #e8ecf1;
+            font-family: 'Lora', serif;
+            padding: 40px 20px;
+            gap: 25px;
+        }
+
+        .certificate {
+            width: 1100px;
+            height: 780px;
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.2);
+            border: 8px solid #12294a;
+            outline: 2px solid #ca8a04;
+            outline-offset: -15px;
+            flex-shrink: 0;
+        }
+
+        .wave-top {
+            position: absolute;
+            top: 0; left: 0; z-index: 1;
+            width: 100%; height: 230px;
+            background: linear-gradient(160deg, #12294a 0%, #1a3a5c 25%, #064e3b 55%, #047857 80%, #12294a 100%);
+            clip-path: polygon(0 0, 100% 0, 100% 45%, 82% 65%, 63% 48%, 40% 72%, 18% 52%, 0 65%);
+        }
+
+        .corner-ornament {
+            position: absolute; width: 40px; height: 40px; z-index: 5;
+        }
+        .corner-ornament::before, .corner-ornament::after {
+            content: ''; position: absolute; background: #ca8a04;
+        }
+        .corner-ornament::before { width: 100%; height: 3px; top: 0; }
+        .corner-ornament::after { width: 3px; height: 100%; left: 0; }
+        
+        .co-tr { top: 35px; right: 35px; transform: rotate(90deg); }
+        .co-tl { top: 35px; left: 35px; }
+        .co-br { bottom: 35px; right: 35px; transform: rotate(180deg); }
+        .co-bl { bottom: 35px; left: 35px; transform: rotate(270deg); }
+
+        .content {
+            position: relative; z-index: 3;
+            height: 100%; padding: 45px 70px;
+            display: flex; flex-direction: column;
+            text-align: center;
+        }
+
+        .header { display: flex; justify-content: center; margin-bottom: 25px; }
+        .brand { display: flex; align-items: center; gap: 15px; }
+        .logo {
+            width: 70px; height: 70px; background: #fff; border-radius: 12px;
+            display: grid; place-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+        .logo svg { width: 50px; height: 50px; fill: #12294a; }
+
+        .brand h2 { font-family: 'Cormorant Garamond', serif; font-size: 42px; color: #fff; letter-spacing: 5px; font-weight: 700; }
+        .brand p { color: rgba(255,255,255,0.9); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-family: 'Montserrat'; }
+
+        .title-section h1 {
+            font-family: 'Playfair Display SC', serif; font-size: 60px;
+            color: #12294a; letter-spacing: 12px; margin-top: 10px;
+        }
+        .gold-line { width: 300px; height: 3px; margin: 15px auto; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+
+        .subtitle { font-style: italic; font-size: 19px; color: #5a6270; margin-bottom: 15px; }
+        .recipient-name {
+            font-family: 'Cormorant Garamond', serif; font-size: 65px;
+            font-weight: 700; color: #12294a; border-bottom: 3px solid var(--gold);
+            padding: 0 40px 5px; display: inline-block; margin-bottom: 20px;
+        }
+
+        .course-name { font-size: 20px; font-weight: 600; color: #12294a; margin: 10px 0; font-family: 'Montserrat'; }
+        .grade-display { font-size: 18px; color: #4a5568; margin-top: 15px; }
+        .grade-text-simple { font-weight: 800; color: #000; font-size: 26px; }
+
+        .footer-section {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            margin-top: auto; padding-bottom: 20px;
+        }
+        .sig-block { width: 220px; text-align: center; }
+        .sig-line { height: 1.5px; background: #cbd5e1; margin-bottom: 10px; }
+        .sig-name { font-family: 'Great Vibes', cursive; font-size: 32px; color: #12294a; }
+        .sig-role { font-size: 11px; font-weight: 700; text-transform: uppercase; font-family: 'Montserrat'; color: #64748b; }
+
+        .badge-qr-container { display: flex; align-items: center; gap: 30px; }
+        .ribbon-circle {
+            width: 110px; height: 110px; border-radius: 50%;
+            background: radial-gradient(circle, #fbbf24, #ca8a04);
+            border: 4px double rgba(255,255,255,0.3);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #fff; box-shadow: 0 10px 20px rgba(202,138,4,0.3);
+        }
+        .qr-box {
+            width: 85px; height: 85px; padding: 5px; background: #fff;
+            border: 1px solid #e2e8f0; border-radius: 8px;
+        }
+        .qr-box img { width: 100%; height: 100%; }
+
+        .footer-note {
+            border-top: 1px solid #e5e7eb; padding-top: 15px;
+            font-family: 'Montserrat', sans-serif; font-size: 11px;
+            color: #4a5568; line-height: 1.6;
+        }
+        .verify-link a { color: #12294a; font-weight: 700; text-decoration: none; }
+        .legal-note { font-size: 9px; opacity: 0.7; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="certificate">
+        <div class="corner-ornament co-tl"></div>
+        <div class="corner-ornament co-tr"></div>
+        <div class="corner-ornament co-bl"></div>
+        <div class="corner-ornament co-br"></div>
+
+        <div class="wave-top"></div>
+
+        <div class="content">
+            <div class="header">
+                <div class="brand">
+                    <div class="logo">
+                        <svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.45l8.27 14.3H3.73L12 5.45zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/></svg>
+                    </div>
+                    <div>
+                        <h2>LERNEXAI</h2>
+                        <p>Learn • Execute • AI</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="title-section">
+                <h1>CERTIFICATE</h1>
+                <p style="letter-spacing: 5px; font-weight: 600; color: #ca8a04; font-size: 14px;">OF COMPLETION</p>
+                <div class="gold-line"></div>
+            </div>
+
+            <p class="subtitle">This is to certify that</p>
+            
+            <div class="recipient-name">${fullName.trim()}</div>
+
+            <p style="font-size: 16px; color: #4a5568; max-width: 700px; margin: 0 auto;">
+                has successfully completed the intensive training program and demonstrated exceptional proficiency in:
+            </p>
+
+            <div class="course-name">${course.title}</div>
+            
+            <div class="grade-display">
+                Grade Achieved: <span class="grade-text-simple">" ${grade?.grade} "</span>
+            </div>
+
+            <div class="footer-section">
+                <div class="sig-block">
+                    <div class="sig-name">Sourav Maurya</div>
+                    <div class="sig-line"></div>
+                    <div class="sig-role">Founder & CEO</div>
+                </div>
+
+                <div class="badge-qr-container">
+                    <div class="ribbon-circle">
+                        <span style="font-size: 24px;">🏅</span>
+                        <span style="font-size: 10px; font-weight: 800; letter-spacing: 1px;">VERIFIED</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="qr-box">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${verifyUrl}" alt="QR">
+                        </div>
+                        <p style="font-size: 8px; margin-top: 5px; font-weight: 700;">SCAN TO VERIFY</p>
+                    </div>
+                </div>
+
+                <div class="sig-block">
+                    <div class="sig-name" style="font-family: 'Cormorant Garamond'; font-weight: 700; font-size: 26px;">LernexAI</div>
+                    <div class="sig-line"></div>
+                    <div class="sig-role">Official Authority</div>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                <div>Verify this credential at: <a href="${verifyUrl}">${verifyUrl}</a></div>
+                <div>Certificate ID: <strong>${certId}</strong> • Issued on <strong>${issuedDate}</strong></div>
+                <div class="legal-note">© 2025–2026 LernexAI Academy. This document is a digital representation of academic achievement.</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${course.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-certificate.svg`;
+    link.download = `${course.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-certificate.html`;
     link.click();
     URL.revokeObjectURL(url);
   };
