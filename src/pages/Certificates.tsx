@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { fetchEnrolledCourses, type EnrolledCourse } from "@/lib/course";
 import { fetchFinalExamStatus } from "@/lib/finalExam";
 import { getCertificateGrade } from "@/lib/certificate";
+import { fetchCertificatePurchaseByCourse } from "@/lib/certificates";
 
 interface CertificateCourse extends EnrolledCourse {
   examScore: number | null;
@@ -50,16 +51,11 @@ export default function Certificates() {
             }
 
             let certificatePurchased = false;
-            if (typeof window !== "undefined") {
-              try {
-                const stored = window.localStorage.getItem("lernexai_certificate_purchase");
-                if (stored) {
-                  const parsed = JSON.parse(stored);
-                  certificatePurchased = parsed.courseId === course.id;
-                }
-              } catch {
-                certificatePurchased = false;
-              }
+            try {
+              const purchase = await fetchCertificatePurchaseByCourse(user.id, course.id);
+              certificatePurchased = purchase !== null;
+            } catch {
+              certificatePurchased = false;
             }
 
             return {

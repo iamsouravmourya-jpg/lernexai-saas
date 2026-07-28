@@ -6,6 +6,7 @@ import { createOrder, openRazorpayCheckout, verifyPayment } from "@/lib/razorpay
 import { fetchCourseWithModules, type Course } from "@/lib/course";
 import { useToast } from "@/hooks/use-toast";
 import { getCertificateGrade } from "@/lib/certificate";
+import { fetchCertificatePurchaseByCourse, createCertificatePurchase, recordCertificateDownload } from "@/lib/certificates";
 
 function formatDate(value: Date) {
   return value.toLocaleDateString("en-IN", {
@@ -50,19 +51,13 @@ export default function CertificateCheckoutPage() {
         setFullName(user?.name || "");
 
         // Check if certificate was already purchased for this specific course
-        if (typeof window !== "undefined") {
-          const purchaseKey = `lernexai_certificate_purchase_${courseId}`;
-          const purchaseData = window.localStorage.getItem(purchaseKey);
-          if (purchaseData) {
-            try {
-              const parsed = JSON.parse(purchaseData);
-              if (parsed.courseId === courseId && parsed.purchased) {
-                setIsPurchased(true);
-              }
-            } catch {
-              // Invalid data, ignore
-            }
+        try {
+          const purchase = await fetchCertificatePurchaseByCourse(user.id, courseId);
+          if (purchase) {
+            setIsPurchased(true);
           }
+        } catch {
+          // Error checking purchase, assume not purchased
         }
 
         setLoading(false);
@@ -107,12 +102,20 @@ export default function CertificateCheckoutPage() {
 
             if (verification.success) {
               setIsPurchased(true);
-              if (typeof window !== "undefined" && course) {
-                const purchaseKey = `lernexai_certificate_purchase_${courseId}`;
-                window.localStorage.setItem(
-                  purchaseKey,
-                  JSON.stringify({ courseId, courseTitle: course.title, purchased: true, completedAt: new Date().toISOString() })
-                );
+              if (course && grade && score !== null && user.id) {
+                try {
+                  await createCertificatePurchase({
+                    userId: user.id,
+                    courseId,
+                    courseTitle: course.title,
+                    score,
+                    grade: grade.grade,
+                    fullName: fullName.trim(),
+                    paymentId: response.razorpay_payment_id,
+                  });
+                } catch (saveError) {
+                  console.error("Failed to save certificate purchase:", saveError);
+                }
               }
               toast({ title: "Certificate unlocked", description: "Your verified certificate is ready to download.", variant: "default" });
             } else {
@@ -133,13 +136,27 @@ export default function CertificateCheckoutPage() {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!course || score === null || !fullName.trim()) return;
 
     const issuedDate = formatDate(new Date());
     // Generate consistent certificate ID based on course and user
     const certId = `LXAI-${new Date().getFullYear()}-${courseId.slice(0, 4).toUpperCase()}-${Math.floor(score)}`;
     const verifyUrl = `https://lernexai.com/verify/${certId}`;
+
+    // Record certificate download
+    if (user?.id) {
+      try {
+        await recordCertificateDownload({
+          certificateId: certId,
+          userId: user.id,
+          ipAddress: undefined, // Could be obtained from server
+          userAgent: navigator.userAgent,
+        });
+      } catch (downloadError) {
+        console.error("Failed to record certificate download:", downloadError);
+      }
+    }
 
     const html = `<!DOCTYPE html>
 <html lang="en">
