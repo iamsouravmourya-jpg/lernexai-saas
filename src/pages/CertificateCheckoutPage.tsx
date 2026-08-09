@@ -3,6 +3,7 @@ import { useLocation, useParams } from "wouter";
 import { Award, ArrowLeft, Download, Share2, CheckCircle2, Loader2, CreditCard, Trophy } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { createOrder, openRazorpayCheckout, verifyPayment } from "@/lib/razorpay";
+import QRCode from "qrcode";
 import { fetchCourseWithModules, type Course } from "@/lib/course";
 import { fetchFinalExamStatus } from "@/lib/finalExam";
 import { useToast } from "@/hooks/use-toast";
@@ -213,6 +214,16 @@ export default function CertificateCheckoutPage() {
     const certId =
       purchaseRecord?.certificate_id ?? (courseId ? buildCertificateId(courseId, score) : "");
     const verifyUrl = getAppUrl(`/verify`);
+
+    // Generate QR code for verification URL
+    const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, {
+      width: 150,
+      margin: 1,
+      color: {
+        dark: "#0a1628",
+        light: "#ffffff"
+      }
+    });
 
     // Record certificate download
     if (user?.id) {
@@ -476,7 +487,7 @@ export default function CertificateCheckoutPage() {
                     </div>
                     <div style="text-align: center;">
                         <div class="qr-box">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${verifyUrl}" alt="QR">
+                            <img src="${qrCodeDataUrl}" alt="QR">
                         </div>
                         <p style="font-size: 8px; margin-top: 5px; font-weight: 700;">SCAN TO VERIFY</p>
                     </div>
