@@ -9,10 +9,10 @@ export default function Auth() {
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) {
+    if (user) {
       setLocation("/dashboard", { replace: true });
     }
-  }, [loading, user, setLocation]);
+  }, [user, setLocation]);
   
   // Form state
   const [firstName, setFirstName] = useState("");
@@ -35,12 +35,12 @@ export default function Auth() {
     }
   };
 
-  if (loading || user) {
+  if (user) {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4" />
-          <p className="text-gray-600">Checking your session...</p>
+          <p className="text-gray-600">Redirecting to dashboard...</p>
         </div>
       </div>
     );

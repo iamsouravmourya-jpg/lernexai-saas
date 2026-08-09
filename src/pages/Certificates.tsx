@@ -52,12 +52,13 @@ export default function Certificates() {
 
             let certificatePurchased = false;
             try {
-              const purchase = await fetchCertificatePurchaseByCourse(user.id, course.id);
-              certificatePurchased = purchase !== null;
+              if (course.id && user.id) {
+                const purchase = await fetchCertificatePurchaseByCourse(user.id, course.id);
+                certificatePurchased = purchase !== null;
+              }
             } catch {
               certificatePurchased = false;
             }
-
             return {
               ...course,
               examScore,

@@ -62,7 +62,9 @@ serve(async (req) => {
 
     if (authError || !user) return jsonResponse({ error: "Unauthorized" }, 401);
 
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json();
+    const body = await req.json();
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, course_id, course_title, score, grade, full_name } = body;
+
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return jsonResponse({ error: "Missing payment verification fields" }, 400);
     }
@@ -114,6 +116,64 @@ serve(async (req) => {
       }
     }
 
+    if (payment.purpose === "certificate") {
+      if (payment.amount !== 9900) {
+        return jsonResponse({ error: "Invalid certificate payment amount" }, 400);
+      }
+      
+      if (!course_id || !course_title || score === undefined || !grade || !full_name) {
+        return jsonResponse({ error: "Missing certificate details" }, 400);
+      }
+
+      // Verify user actually passed the exam for this course
+      const { data: examAttempt, error: examError } = await supabase
+        .from("final_exam_attempts")
+        .select("passed, score")
+        .eq("user_id", user.id)
+        .eq("course_id", course_id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (examError || !examAttempt) {
+        console.error("[verify-razorpay-payment] Exam verification failed", examError);
+        return jsonResponse({ error: "Exam record not found" }, 404);
+      }
+
+      if (!examAttempt.passed || examAttempt.score < 40) {
+        return jsonResponse({ error: "User has not passed the final exam" }, 403);
+      }
+
+      // Validate score matches server truth
+      if (examAttempt.score !== score) {
+        return jsonResponse({ error: "Score mismatch with exam record" }, 400);
+      }
+
+      // Generate unique random certificate ID
+      const randomPart = crypto.randomUUID().split('-')[0].toUpperCase();
+      const certificateId = `LXAI-${new Date().getFullYear()}-${randomPart}`;
+
+      // Insert certificate purchase record
+      const { error: certError } = await supabase
+        .from("certificate_purchases")
+        .insert({
+          user_id: user.id,
+          course_id,
+          course_title,
+          certificate_id: certificateId,
+          score,
+          grade,
+          full_name,
+          purchase_amount: 9900,
+          payment_id: razorpay_payment_id,
+        });
+
+      if (certError) {
+        console.error("[verify-razorpay-payment] Certificate insert error", certError);
+        return jsonResponse({ error: "Failed to create certificate record" }, 500);
+      }
+    }
+
     const { error: paymentError } = await supabase
       .from("payments")
       .update({
@@ -129,7 +189,10 @@ serve(async (req) => {
       return jsonResponse({ error: "Failed to update payment record" }, 500);
     }
 
-    return jsonResponse({ success: true, message: "Payment verified and Pro activated" });
+    const message = payment.purpose === "certificate" 
+      ? "Payment verified and certificate created" 
+      : "Payment verified and Pro activated";
+    return jsonResponse({ success: true, message });
   } catch (error) {
     console.error("[verify-razorpay-payment] Unexpected error", error);
     return jsonResponse({ error: error instanceof Error ? error.message : "Unexpected error" }, 500);

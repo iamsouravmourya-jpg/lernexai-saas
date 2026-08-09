@@ -41,10 +41,8 @@ CREATE POLICY "Users can view their own certificate purchases"
   ON certificate_purchases FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert their own certificate purchases"
-  ON certificate_purchases FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
-
+-- Client-side INSERT disabled - only Edge Functions can create certificate purchases
+-- This prevents fake score exploitation since server validates exam pass status
 CREATE POLICY "Users can update their own certificate purchases"
   ON certificate_purchases FOR UPDATE
   USING (auth.uid() = user_id);

@@ -1,0 +1,908 @@
+LERNEXAI PROJECT WHATTODO
+=========================
+Updated: 27 July 2026
+
+Chunk 1 of the long project audit
+---------------------------------
+This chunk covers the app shell, auth layer, Supabase client config, and course data helpers.
+It is intentionally detailed so the next chunk can continue from the same audit style.
+
+1. `src/App.tsx`
+----------------
+Status: Core routing is active.
+Role: This is the route spine of the whole app.
+What it does: It wires public pages, protected pages, and the auth redirect behavior.
+What works: Dashboard, browse, learning, final exam, and certificate routes are all connected.
+What needs review: Route coverage should stay aligned with the actual files in the repo.
+Risk: A route mismatch can make a whole screen unreachable.
+UI note: The component itself is not visual, but it governs every screen transition.
+Data note: It depends on the auth provider and page components behaving correctly.
+Performance note: Route-level code splitting can reduce the initial load later.
+Accessibility note: Redirects must not trap keyboard users in loading states.
+Error handling note: The loading fallback should stay clear and simple.
+Responsive note: No direct layout impact, but route-level behavior affects mobile navigation.
+Edge case note: Unauthenticated users should never see protected page content.
+Integration note: This file is the main link between the auth system and the learner journey.
+Testing note: Test direct URL entry, refresh, protected access, and invalid route fallback.
+Regression watch: Do not add dead routes or forget to wire newly created pages.
+Deployment note: Base path and Wouter routing must stay compatible with hosting.
+Ownership: Frontend architecture.
+Priority: High.
+Keep: Keep the routing map minimal and predictable.
+Improve: Consider chunk splitting if bundle warnings remain.
+Next action: Recheck all route imports after any page rename.
+
+2. `src/context/AuthContext.tsx`
+--------------------------------
+Status: Auth state is central and should stay authoritative.
+Role: This file manages session, user state, and logout behavior.
+What it does: It supports login persistence and protected route decisions.
+What works: The app can gate protected pages cleanly when the session exists.
+What needs review: Auth loading and metadata refresh must stay reliable.
+Risk: Stale auth metadata can make dashboard and certificate state look wrong.
+UI note: Loading states should not flash protected UI before auth resolves.
+Data note: This provider depends on Supabase auth session correctness.
+Performance note: Auth checks should be fast because every protected page depends on them.
+Accessibility note: Loading text should be readable and not hidden from assistive tech.
+Error handling note: Sign-in and sign-out errors should stay visible and useful.
+Responsive note: No visual layout issue, but mobile redirects should feel smooth.
+Edge case note: Session restore after refresh should not drop the user into a bad state.
+Integration note: Dashboard, learning, and payment flow all rely on this provider.
+Testing note: Test sign-in, sign-out, callback return, and token refresh.
+Regression watch: Do not duplicate auth state in pages that already consume this provider.
+Deployment note: The correct Supabase env variables must be present in every deployment.
+Ownership: Auth and platform.
+Priority: High.
+Keep: Keep user metadata access controlled.
+Improve: Normalize error handling and session recovery.
+Next action: Verify auth metadata updates after payment and plan changes.
+
+3. `src/lib/supabase.ts`
+------------------------
+Status: Supabase client wiring is foundational.
+Role: This file gives the app its Supabase connection.
+What it does: It configures the browser client used by auth, course, exam, and payment flows.
+What works: A single client keeps the data layer consistent.
+What needs review: Env values must be valid in local, preview, and production builds.
+Risk: A wrong URL or key can break multiple user journeys at once.
+UI note: No direct UI, but failures here surface as broken pages or loading states.
+Data note: This file should never expose service-role secrets.
+Performance note: Client initialization should remain lightweight.
+Accessibility note: No direct role, but app-wide reliability matters for all users.
+Error handling note: Misconfiguration should fail clearly during startup or first request.
+Responsive note: No direct layout role.
+Edge case note: If env vars are missing, the app should not silently continue.
+Integration note: Every helper that talks to Supabase depends on this client.
+Testing note: Test with valid env, missing env, and wrong env values.
+Regression watch: Do not duplicate config logic in other files.
+Deployment note: Hosting variables must match the local `.env` expectations.
+Ownership: Infrastructure and frontend.
+Priority: High.
+Keep: Keep the client code small and deterministic.
+Improve: Provide clearer startup feedback if config is broken.
+Next action: Confirm the anon key and project URL remain aligned.
+
+4. `src/lib/course.ts`
+----------------------
+Status: Course helper layer is active and important.
+Role: It fetches courses, modules, lessons, enrollment, and progress data.
+What it does: It powers browse, course detail, learning, dashboard, and certificate views.
+What works: Course and progress helpers are reusable across multiple screens.
+What needs review: Data shape consistency matters because many pages read this module.
+Risk: If a helper changes, several screens can drift at once.
+UI note: The page layouts depend on this data being complete and clean.
+Data note: It must respect RLS and user ownership at all times.
+Performance note: Repeated course fetches should remain efficient as the app grows.
+Accessibility note: Content ordering should remain logical when data is missing or partial.
+Error handling note: Empty results and query failures should have friendly fallbacks.
+Responsive note: Course cards and learning layouts depend on this data scale.
+Edge case note: A course with missing lessons should not break the whole learner flow.
+Integration note: This helper is used by exam and certificate screens too.
+Testing note: Test no-enrollment, one-course, many-course, and reset scenarios.
+Regression watch: Do not break progress calculations while adjusting module or lesson shape.
+Deployment note: DB schema and helper expectations must stay synchronized.
+Ownership: Course/data team.
+Priority: High.
+Keep: Keep helpers reusable and predictable.
+Improve: Add more explicit type checks if schema expands.
+Next action: Reconfirm course loading after any backend schema update.
+
+5. `src/lib/finalExam.ts`
+------------------------
+Status: Final exam client wrapper is active.
+Role: This file connects the page to the final-exam edge function.
+What it does: It starts exams, fetches status, and submits answers.
+What works: The helper stays thin and keeps exam logic on the server.
+What needs review: Request and response types must stay aligned with the edge function.
+Risk: A mismatch here can break grading or result display.
+UI note: Result screens depend on this helper for score and pass/fail data.
+Data note: Final exam attempts must stay server-authored.
+Performance note: The helper should remain fast because the flow is time sensitive.
+Accessibility note: The page driven by this helper needs clear loading and result text.
+Error handling note: Load, start, submit, and timeout errors should stay distinct.
+Responsive note: No direct layout role, but the exam UI depends on clean state transitions.
+Edge case note: Duplicate submits and stale attempts must be guarded.
+Integration note: This helper is used by the final exam page and certificate handoff.
+Testing note: Test start, submit, timeout, pass, fail, and resume cases.
+Regression watch: Do not move grading logic back into the client.
+Deployment note: The edge function and question bank must remain live.
+Ownership: Exam backend and frontend.
+Priority: High.
+Keep: Keep the helper thin and predictable.
+Improve: Add better typed result handling if the API expands.
+Next action: Reconfirm that passing score values match the server.
+
+6. `src/lib/razorpay.ts`
+------------------------
+Status: Payment helper is updated and important.
+Role: It opens Razorpay and verifies payment through Supabase functions.
+What it does: It supports both Pro subscription and certificate purchases.
+What works: Order creation and signature verification are already server-backed.
+What needs review: Purpose values and checkout descriptions must stay exact.
+Risk: Payment flows are sensitive to amount, purpose, and verification mismatch.
+UI note: The checkout modal must feel trustworthy and not show ambiguous copy.
+Data note: The helper should never contain secret server keys.
+Performance note: Script loading should stay stable and not block the page unnecessarily.
+Accessibility note: Modal dismiss and failure messages need clear text.
+Error handling note: Payment failure, close, and verification errors should all be visible.
+Responsive note: The Razorpay modal should still work on smaller screens.
+Edge case note: Double open or double verify attempts should be avoided.
+Integration note: This helper talks to create-order and verify-payment edge functions.
+Testing note: Test success, cancellation, network failure, and reload after success.
+Regression watch: Do not let certificate orders reuse Pro-only assumptions.
+Deployment note: Razorpay keys and Supabase edge secrets must be present.
+Ownership: Payments and backend.
+Priority: High.
+Keep: Keep server-side verification mandatory.
+Improve: Provide clearer descriptions for certificate checkout.
+Next action: Verify the certificate payment branch end to end.
+
+7. `src/lib/certificate.ts`
+---------------------------
+Status: Certificate helper layer is active and useful.
+Role: It formats grades, dates, verification URLs, IDs, and payment lookup helpers.
+What it does: It centralizes certificate-related logic that is shared by multiple screens.
+What works: The helper makes certificate UI code smaller and easier to reuse.
+What needs review: It should remain a helper, not become the source of truth for ownership.
+Risk: If IDs or verify links drift, the printed certificate becomes confusing.
+UI note: The certificate pages rely on this helper for trust cues.
+Data note: Payment lookups should come from the server, not browser storage.
+Performance note: Lookups should remain fast and limited to what the UI needs.
+Accessibility note: Certificate content still needs strong text contrast in the UI.
+Error handling note: Missing or malformed records should fall back safely.
+Responsive note: The helper itself is not visual, but it affects the print layout.
+Edge case note: Long course titles and long names need stable formatting.
+Integration note: Used by checkout, certificates, and dashboard-like views.
+Testing note: Test ID generation, URL generation, date formatting, and empty purchase results.
+Regression watch: Do not duplicate formatting logic in page components.
+Deployment note: The verify URL should match the current deployed origin.
+Ownership: Certificate and frontend.
+Priority: High.
+Keep: Keep certificate formatting in one place.
+Improve: Tighten purchase lookup logic if the schema grows.
+Next action: Reconfirm certificate IDs after the final template is stable.
+
+8. `src/lib/aiTutor.ts`
+-----------------------
+Status: Tutor client wrapper is active.
+Role: It sends lesson-aware AI tutor requests and loads history.
+What it does: It normalizes the chat API used by AIChatPanel.
+What works: The tutor flow stays lesson-aware and thin on the client.
+What needs review: Message shapes must match the server function exactly.
+Risk: If normalization breaks, the chat UI becomes confusing or empty.
+UI note: The tutor panel depends on this helper for history and responses.
+Data note: Tutor history and usage are server-backed and user-scoped.
+Performance note: Chat should feel quick, with loading states masking latency.
+Accessibility note: Chat actions and history should remain keyboard friendly.
+Error handling note: Empty, quota, or network failures need useful messages.
+Responsive note: The helper is not visual, but it supports a tight chat layout.
+Edge case note: Wrong-course context must not leak into replies.
+Integration note: Used directly by AIChatPanel and the tutor edge function.
+Testing note: Test history loading, send, quota, and failure responses.
+Regression watch: Do not reintroduce old or duplicate tutor provider logic.
+Deployment note: The tutor edge function and usage tables must exist.
+Ownership: AI and frontend.
+Priority: Medium.
+Keep: Keep lesson-aware request payloads.
+Improve: Make error fallbacks even more user friendly.
+Next action: Verify history restore after reload and plan changes.
+
+9. `src/pages/Home.tsx`
+-----------------------
+Status: Public landing page is active.
+Role: It is the first conversion surface for new visitors.
+What it does: It presents the marketing story, benefits, and CTA structure.
+What works: The public-facing site gives the product a polished entry point.
+What needs review: Long sections can feel dense if the rhythm is not tight.
+Risk: A crowded landing page can reduce conversion clarity.
+UI note: Hero clarity and CTA priority are the most important visual goals.
+Data note: This page is mostly static, so it should stay low-risk.
+Performance note: Static content should remain light and fast.
+Accessibility note: Heading order and CTA labels need to be clear.
+Error handling note: External links and navigation should fail gracefully.
+Responsive note: Mobile spacing and section order matter a lot here.
+Edge case note: Keep long text from pushing the main CTA too far down.
+Integration note: The page must route cleanly into auth.
+Testing note: Test scroll flow, CTA visibility, and external navigation.
+Regression watch: Do not add duplicate marketing sections without purpose.
+Deployment note: Fonts, images, and CTA links must load reliably.
+Ownership: Marketing and frontend.
+Priority: Medium.
+Keep: Keep the top-of-fold message strong.
+Improve: Reduce excess copy if it makes the page feel heavy.
+Next action: Recheck spacing and mobile hierarchy after design updates.
+
+10. `src/pages/Auth.tsx`
+------------------------
+Status: Authentication screen is active.
+Role: This page handles sign-in, sign-up, and OAuth entry.
+What it does: It is the entry point for returning and new users.
+What works: A dedicated auth screen keeps the login journey focused.
+What needs review: Error text and loading states should stay trustworthy.
+Risk: Auth issues block every protected page in the app.
+UI note: The form should remain simple and low-friction.
+Data note: It depends on Supabase auth and session persistence.
+Performance note: Auth actions should feel immediate even when backend calls take time.
+Accessibility note: Inputs, labels, and error messages must be keyboard friendly.
+Error handling note: Invalid login, signup issues, and OAuth failures need good copy.
+Responsive note: The form should stay usable on narrow screens.
+Edge case note: Refreshing mid-login should not create a broken session state.
+Integration note: Successful auth must connect directly into the router and dashboard.
+Testing note: Test password login, OAuth login, logout, and invalid credentials.
+Regression watch: Avoid duplicated auth logic in page components.
+Deployment note: Redirect URLs must match the auth provider config.
+Ownership: Auth and frontend.
+Priority: High.
+Keep: Keep the flow short and clear.
+Improve: Make error copy even more actionable.
+Next action: Validate auth redirects after any provider configuration change.
+
+11. `src/pages/AuthCallback.tsx`
+--------------------------------
+Status: OAuth callback screen is active.
+Role: It handles the return path after provider login.
+What it does: It finalizes the session after external authentication.
+What works: A dedicated callback route reduces auth confusion.
+What needs review: Redirect and loading behavior must stay deterministic.
+Risk: Broken callbacks can trap users after OAuth login.
+UI note: The page can stay visually simple, but should never appear broken.
+Data note: It depends on the auth response from Supabase.
+Performance note: The callback should move quickly to the next page.
+Accessibility note: Loading and error states should be readable.
+Error handling note: Expired or invalid callbacks need clear recovery.
+Responsive note: No special layout complexity, but mobile redirects still matter.
+Edge case note: Refreshing the callback page should not create loops.
+Integration note: This route must work with the main auth page and session provider.
+Testing note: Test direct callback access, refresh, and failed session restoration.
+Regression watch: Do not hide auth errors behind silent redirects.
+Deployment note: Auth redirect URLs must remain accurate in production.
+Ownership: Auth and frontend.
+Priority: High.
+Keep: Keep callback handling minimal.
+Improve: Add clearer recovery messaging if the session is missing.
+Next action: Confirm OAuth provider settings after any environment change.
+
+12. `src/pages/Dashboard.tsx`
+----------------------------
+Status: Core dashboard is live but needs entitlement cleanup.
+Role: This is the user home after login and the main re-entry point.
+What it does: It shows progress, continue-learning, notifications, and certificate prompts.
+What works: The dashboard helps users resume learning quickly.
+What needs review: Certificate state must be server-backed after the earlier localStorage issue.
+Risk: A misleading certificate banner can erode trust.
+UI note: This page is dense and should keep hierarchy very clear.
+Data note: It should read verified course and payment data from the server.
+Performance note: Many cards and modal states can make the page feel heavy.
+Accessibility note: Sidebar, buttons, and wizard controls need consistent focus handling.
+Error handling note: Empty or missing data should not look like a broken page.
+Responsive note: This is one of the most important pages for mobile polish.
+Edge case note: The certificate summary should not appear unless entitlement is real.
+Integration note: ContinueLearningCard and certificate states must stay synchronized.
+Testing note: Test login, refresh, payment success, and purchase recovery.
+Regression watch: Do not re-add browser storage as the source of truth.
+Deployment note: DB schema and dashboard logic must be updated together.
+Ownership: Frontend and product.
+Priority: High.
+Keep: Keep the dashboard as the central hub.
+Improve: Simplify the card stack and entitlement display.
+Next action: Replace dashboard certificate state with server-backed records.
+
+13. `src/pages/Browse.tsx`
+--------------------------
+Status: Course discovery page is active.
+Role: It lets users find and open courses.
+What it does: It presents the catalog and leads users into course detail.
+What works: Browse is a clear discovery entry point.
+What needs review: Card density and metadata should not overwhelm users.
+Risk: Too much content can make browsing feel slower than it is.
+UI note: The cards and filters should remain readable and visually balanced.
+Data note: Course listing depends on clean course data from Supabase.
+Performance note: Discovery pages should stay light because they are common entry points.
+Accessibility note: Filter and card controls need good labels and contrast.
+Error handling note: Empty catalog and query errors need friendly fallback states.
+Responsive note: The grid should stack gracefully on small screens.
+Edge case note: Broken course IDs should never result in confusing blanks.
+Integration note: This page must route users into course detail and learning cleanly.
+Testing note: Test filters, card clicks, and back navigation.
+Regression watch: Avoid adding duplicate or stale course metadata.
+Deployment note: Course data and thumbnails should load reliably.
+Ownership: Content and frontend.
+Priority: Medium.
+Keep: Keep the browse flow simple.
+Improve: Tighten spacing if the catalog grows.
+Next action: Recheck the discovery hierarchy after adding new courses.
+
+14. `src/pages/CourseDetail.tsx`
+-------------------------------
+Status: Course detail screen is active.
+Role: It explains the course and prepares the user for enrollment or learning.
+What it does: It presents the selected course with action paths into the learning flow.
+What works: The page can convert curiosity into enrollment or study.
+What needs review: Too many stacked sections can weaken the CTA hierarchy.
+Risk: Broken or missing course data would confuse the user early in the funnel.
+UI note: The CTA should stay obvious and visually stronger than the filler content.
+Data note: It depends on reliable course detail and module data.
+Performance note: The page should remain quick because it is a common user step.
+Accessibility note: Headings, buttons, and course metadata need clear labels.
+Error handling note: Missing course lookup should show a friendly fallback, not a blank page.
+Responsive note: The layout should not crowd important content on mobile.
+Edge case note: Enrollment state should not show stale or contradictory messages.
+Integration note: It connects browse to learning and enrollment to progress.
+Testing note: Test valid course, invalid course, enrolled state, and back navigation.
+Regression watch: Do not let content copy overshadow the main action.
+Deployment note: Course and module data must stay synchronized with the helper layer.
+Ownership: Course and frontend.
+Priority: Medium.
+Keep: Keep the course detail page persuasive and simple.
+Improve: Reduce visual noise if the layout gets too long.
+Next action: Validate CTA hierarchy after content changes.
+
+15. `src/pages/MyLearning.tsx`
+------------------------------
+Status: Enrolled courses overview is active.
+Role: It shows the user’s currently joined courses.
+What it does: It provides a quick way back into active learning.
+What works: The page helps users find where they left off.
+What needs review: Empty and loading states should stay informative.
+Risk: Stale enrollment or progress data can create confusion.
+UI note: The list should stay compact and scannable.
+Data note: It relies on enrollment and progress helpers.
+Performance note: It should remain light even when multiple courses exist.
+Accessibility note: Each card needs clear labels and meaningful actions.
+Error handling note: Missing data should not look like a failure.
+Responsive note: Cards should stack nicely on narrow screens.
+Edge case note: Zero enrolled courses needs a strong guided empty state.
+Integration note: It connects directly into the learning workspace.
+Testing note: Test zero, one, and many enrolled courses.
+Regression watch: Avoid duplicating dashboard state here.
+Deployment note: Enrollment queries and RLS should stay consistent.
+Ownership: Course and frontend.
+Priority: Medium.
+Keep: Keep this page focused on re-entry.
+Improve: Make status labels more explicit if needed.
+Next action: Reconfirm the card list after any enrollment schema change.
+
+16. `src/pages/Learning.tsx`
+---------------------------
+Status: Main learning workspace is active.
+Role: This is the core study environment with lessons, sidebar, and AI tutor.
+What it does: It combines lesson navigation, content display, and tutor assistance.
+What works: The three-panel layout gives a full learning experience.
+What needs review: The layout can feel cramped on smaller screens.
+Risk: This page is the most complex and easiest to overload visually.
+UI note: Sidebar, lesson body, and chat panel need clear balance.
+Data note: It depends on course, lesson, module, progress, and tutor data.
+Performance note: This should stay responsive because it is the daily-use screen.
+Accessibility note: The reading area and chat interactions need strong keyboard support.
+Error handling note: Loading and error states should not interrupt the learner flow.
+Responsive note: Mobile and tablet stacking must be carefully checked.
+Edge case note: Long lessons and many modules should not break layout.
+Integration note: It ties together course helpers, tutor client, and completion logic.
+Testing note: Test navigation, lesson completion, tutor chat, and device widths.
+Regression watch: Do not let hidden legacy player behavior creep back in.
+Deployment note: Tutor backend and course data must be available.
+Ownership: Learning product.
+Priority: High.
+Keep: Keep the workspace immersive and focused.
+Improve: Make the responsive stacking more comfortable.
+Next action: Recheck width, spacing, and panel behavior after design tweaks.
+
+17. `src/pages/FinalExam.tsx`
+----------------------------
+Status: Exam UI is active and important.
+Role: It drives the timed final assessment and result review.
+What it does: It starts the exam, counts down time, and shows the graded result.
+What works: The exam already uses server-side grading and attempt tracking.
+What needs review: The handoff from passing result to certificate must remain smooth.
+Risk: Any bug here affects certificate eligibility and learner confidence.
+UI note: Result state should be clear, calm, and easy to interpret.
+Data note: It depends on the final-exam edge function and attempt summary.
+Performance note: Timing state should remain stable during the full exam session.
+Accessibility note: Buttons, question labels, and countdown text need clear reading order.
+Error handling note: Load, start, and submit errors must be distinguishable.
+Responsive note: Questions and answer options must fit smaller screens gracefully.
+Edge case note: Timeouts, duplicate submit, and re-open scenarios need care.
+Integration note: This page connects to the certificate checkout route after passing.
+Testing note: Test pass, fail, timeout, and retry flows.
+Regression watch: Do not move grading back into client-side code.
+Deployment note: Question bank and exam function must stay synchronized.
+Ownership: Exam product and backend.
+Priority: High.
+Keep: Keep server-side grading authoritative.
+Improve: Make the certificate handoff even cleaner.
+Next action: Reconfirm the post-pass CTA and result text.
+
+18. `src/pages/Upgrade.tsx`
+---------------------------
+Status: Pro upgrade page is active.
+Role: It explains the paid plan and starts the Razorpay journey.
+What it does: It moves the user from free to Pro subscription.
+What works: The plan flow is already connected to secure order creation.
+What needs review: Pricing, benefits, and success feedback should remain consistent.
+Risk: A confusing payment page can hurt trust even if the backend is correct.
+UI note: The Pro CTA should be more prominent than the secondary text.
+Data note: It depends on the payments helper and verification function.
+Performance note: Payment start should feel immediate.
+Accessibility note: Pricing and action text should be readable and clear.
+Error handling note: Payment cancellation and failure need friendly copy.
+Responsive note: The layout should remain usable on small screens.
+Edge case note: A user backing out of checkout should not feel trapped.
+Integration note: It ties directly to the Razorpay helper and payment tables.
+Testing note: Test free-to-pro flow, cancellation, and post-payment state.
+Regression watch: Keep amount and purpose values aligned with the backend.
+Deployment note: Razorpay config must be present in the environment.
+Ownership: Payments and product.
+Priority: Medium.
+Keep: Keep the Pro value proposition visible.
+Improve: Clarify what the user gets after upgrade.
+Next action: Verify the dashboard plan badge after successful payment.
+
+19. `src/pages/Certificates.tsx`
+-------------------------------
+Status: Certificate hub is active but needs server-backed ownership.
+Role: This page summarizes readiness, purchase, and download state.
+What it does: It lists courses and shows whether a certificate can be unlocked.
+What works: The card layout is easy to scan.
+What needs review: Ownership state should no longer depend on localStorage.
+Risk: Browser storage can lie or disappear, so it cannot be the trust source.
+UI note: The status chips need authoritative meaning.
+Data note: Use payment records and final-exam status instead of browser storage.
+Performance note: Per-course fetches should remain efficient.
+Accessibility note: Buttons and badges need readable labels and contrast.
+Error handling note: Failed loads should not look like success.
+Responsive note: Cards should stack properly on mobile.
+Edge case note: A certificate should stay visible after refresh or device change.
+Integration note: This page must match checkout and dashboard behaviors.
+Testing note: Test ready, purchased, in-progress, and no-enrollment states.
+Regression watch: Do not keep localStorage as the primary entitlement check.
+Deployment note: The payments schema must include course_id for certificates.
+Ownership: Frontend and backend.
+Priority: High.
+Keep: Keep the certificate hub concept.
+Improve: Read server-backed purchase rows.
+Next action: Switch this page to trusted entitlement data.
+
+20. `src/pages/CertificateCheckoutPage.tsx`
+------------------------------------------
+Status: Main certificate screen with premium design.
+Role: It handles payment, preview, share, print, and download.
+What it does: It uses the HTML-inspired template and current exam status.
+What works: The premium certificate design is visible and polished.
+What needs review: Ownership and score must remain server-backed.
+Risk: A wrong score or fake purchase state would damage trust.
+UI note: The preview should feel like a real certificate, not a mockup.
+Data note: Final-exam status and payment records should be the inputs.
+Performance note: SVG generation and QR loading should stay light.
+Accessibility note: Share, print, and download controls need labels.
+Error handling note: Payment or verification failures need clear messages.
+Responsive note: The layout must stay usable on small widths.
+Edge case note: If payment data is missing, the page should still fail safely.
+Integration note: It relies on Razorpay, final exam, and certificate helpers.
+Testing note: Test pass, fail, retry, share, print, and download.
+Regression watch: Do not reintroduce localStorage as ownership state.
+Deployment note: Requires payments migration and valid Razorpay keys.
+Ownership: Frontend, payments, and certificate work.
+Priority: High.
+Keep: Keep the premium template as the live certificate view.
+Improve: Ensure verified purchase records show everywhere.
+Next action: Confirm the server-backed purchase flow end to end.
+
+21. `src/pages/CertificatePage.tsx`
+----------------------------------
+Status: Legacy or fallback certificate view.
+Role: Older certificate download page with SVG generation.
+What it does: It renders a simpler certificate based on exam score and query data.
+What works: The file proves the certificate concept existed before the premium redesign.
+What needs review: It is not currently wired into the active router.
+Risk: Duplicate certificate logic can drift from the new design.
+UI note: Its older styling is simpler than the premium template.
+Data note: It still reads score from query and attempt data.
+Performance note: It is smaller than the new page, but not the chosen implementation.
+Accessibility note: Keep only if you want a fallback with proper labels.
+Error handling note: It should not expose unlock state without verification.
+Responsive note: It works passably, but is not the production layout.
+Edge case note: It could confuse future maintenance if linked unexpectedly.
+Integration note: Unique logic here should be consolidated into shared helpers.
+Testing note: Test only if this page stays alive as a fallback.
+Regression watch: Avoid two sources of truth for certificate rendering.
+Deployment note: Safe to remove if unused.
+Ownership: Frontend.
+Priority: Medium.
+Keep: Keep only if it is intentionally used as backup.
+Improve: Move any unique logic into shared helpers.
+Next action: Decide whether to delete or repurpose this file.
+
+22. `src/pages/Player.tsx`
+-------------------------
+Status: Legacy and unrouted.
+Role: Older learning player implementation.
+What it does: It still contains learning-related logic, but no route reaches it.
+What works: It may preserve some older ideas if needed later.
+What needs review: Dead code increases maintenance noise.
+Risk: Unused routes can mislead future contributors.
+UI note: Any UI in this file is effectively unreachable.
+Data note: It still depends on course and progress helpers.
+Performance note: Unused code does not impact runtime much, but it does increase mental load.
+Accessibility note: No live accessibility impact while unrouted.
+Error handling note: No live runtime errors if it stays unused.
+Responsive note: Irrelevant until routed.
+Edge case note: It could be deleted if no future plan exists.
+Integration note: There is no current integration with App routes.
+Testing note: No test coverage is needed unless it is revived.
+Regression watch: Do not accidentally rely on it without routing.
+Deployment note: Safe to remove if confirmed unused.
+Ownership: Frontend.
+Priority: Low.
+Keep: Keep only if there is a specific migration plan.
+Improve: Either wire it or archive it.
+Next action: Decide whether to remove the file.
+
+23. `src/components/AIChatPanel.tsx`
+-----------------------------------
+Status: Live tutor panel component.
+Role: It renders the in-learning chat assistant for lesson support.
+What it does: It shows history, suggestions, and message input for the tutor.
+What works: The tutor panel is the active learning UI, not the legacy component.
+What needs review: Chat scrolling, loading history, and quota messaging must remain clear.
+Risk: If the tutor panel feels noisy, it can distract from learning.
+UI note: The panel needs compact spacing and good message contrast.
+Data note: It depends on the tutor client and backend function.
+Performance note: Chat latency should be masked with strong loading states.
+Accessibility note: Keyboard control and copy actions need to stay clear.
+Error handling note: Quota, network, and backend errors need user-friendly text.
+Responsive note: The chat column must fit the learning workspace on smaller screens.
+Edge case note: Wrong lesson context should never appear in chat replies.
+Integration note: It connects directly to the tutor client wrapper.
+Testing note: Test history load, send, failure, and limited-usage states.
+Regression watch: Do not let old tutor UI patterns creep back in.
+Deployment note: Requires the ai-tutor edge function and usage tables.
+Ownership: AI and frontend.
+Priority: Medium.
+Keep: Keep the lesson-aware chat flow.
+Improve: Fine-tune suggestions and empty state messaging.
+Next action: Recheck tutor behavior after any backend prompt change.
+
+24. `src/components/AITutor.tsx`
+------------------------------
+Status: Legacy unused tutor component.
+Role: Older AI chat UI that is not used by the live app.
+What it does: It shows a previous tutor interface pattern.
+What works: It can be a historical reference if needed.
+What needs review: It duplicates the active tutor idea and increases drift.
+Risk: People may update the wrong tutor file by mistake.
+UI note: It could confuse consistency if brought back without review.
+Data note: Live AI logic should remain in the active tutor stack.
+Performance note: Unused code should be removed to reduce surface area.
+Accessibility note: No live accessibility impact while unused.
+Error handling note: No runtime role if the file stays dead.
+Responsive note: Irrelevant until routed.
+Edge case note: Archive or delete if no future use exists.
+Integration note: It is not imported anywhere in the current app.
+Testing note: No test coverage needed if removed.
+Regression watch: Avoid keeping two tutor UIs alive.
+Deployment note: Safe to delete after reference checks.
+Ownership: Frontend.
+Priority: Medium.
+Keep: Keep only as a temporary reference.
+Improve: Delete once the active tutor is trusted.
+Next action: Remove or archive the file.
+
+25. `src/components/LessonContent.tsx`
+-------------------------------------
+Status: Active lesson display component.
+Role: It renders the core reading area in the learning workspace.
+What it does: It shows lesson body, media, and content structure.
+What works: The content area gives the workspace its main reading surface.
+What needs review: Typography and spacing must stay comfortable for long lessons.
+Risk: Dense content can make the learning experience tiring.
+UI note: Reading width and section spacing are important here.
+Data note: It depends on lesson content shape from course data.
+Performance note: Rendering should remain lightweight.
+Accessibility note: Headings, lists, and content order should stay semantic.
+Error handling note: Missing lesson content should have a clear fallback.
+Responsive note: The component must remain readable in narrow layouts.
+Edge case note: Long text, embedded examples, and empty lessons need care.
+Integration note: Works with sidebar navigation and progress updates.
+Testing note: Test long lessons, empty lessons, and navigation switching.
+Regression watch: Do not let styling become too compact.
+Deployment note: No special backend deployment, but it depends on course data.
+Ownership: Learning UI.
+Priority: High.
+Keep: Keep the reading surface calm and focused.
+Improve: Increase readability if content density grows.
+Next action: Recheck lesson typography after future module additions.
+
+26. `src/components/ModuleSidebar.tsx`
+-------------------------------------
+Status: Active module navigation component.
+Role: It lets the learner move across modules and lessons.
+What it does: It organizes the course structure in the left panel.
+What works: A sidebar helps users understand course progression.
+What needs review: On small screens, sidebar behavior needs careful control.
+Risk: If the sidebar is too heavy, it steals space from lesson content.
+UI note: Active, completed, and locked states need clear visual distinction.
+Data note: It depends on module and lesson lists from course data.
+Performance note: Sidebar rendering should stay quick even with many lessons.
+Accessibility note: The navigation must remain keyboard accessible.
+Error handling note: Empty modules should not make the UI look broken.
+Responsive note: Collapse behavior is especially important on mobile.
+Edge case note: Long lesson names can wrap awkwardly if not handled.
+Integration note: It works closely with lesson content and progress tracking.
+Testing note: Test lesson selection, collapse state, and long labels.
+Regression watch: Avoid layout shifts when switching modules.
+Deployment note: No backend change needed, but data must stay consistent.
+Ownership: Learning UI.
+Priority: High.
+Keep: Keep navigation clear and predictable.
+Improve: Tune collapsed behavior on narrow screens.
+Next action: Revalidate sidebar spacing in the learning shell.
+
+27. `src/components/QuizSection.tsx`
+-----------------------------------
+Status: Active quiz display component.
+Role: It presents module quiz questions and feedback UI.
+What it does: It shows quiz content and result states within the lesson flow.
+What works: The quiz experience feels integrated instead of dead-end.
+What needs review: Feedback and selection states need to remain obvious.
+Risk: If the quiz UI gets confusing, learning confidence drops.
+UI note: Correct and incorrect states should stay highly visible.
+Data note: It depends on quiz data and attempt storage.
+Performance note: Questions should render fast and without jank.
+Accessibility note: Options and feedback messages need good keyboard flow.
+Error handling note: Missing quiz data should not break the lesson page.
+Responsive note: Quiz cards must stay readable on mobile.
+Edge case note: Empty attempts and repeated submissions need care.
+Integration note: The component should align with quiz persistence and progress.
+Testing note: Test answer selection, feedback popup, and reset behavior.
+Regression watch: Do not lose the clear green/red feedback pattern.
+Deployment note: Quiz schema and content must stay aligned.
+Ownership: Learning and assessment.
+Priority: Medium.
+Keep: Keep the quiz interaction lightweight.
+Improve: Tighten spacing and feedback timing if needed.
+Next action: Confirm quiz copy after any content updates.
+
+28. `src/components/CourseProgressBar.tsx`
+-----------------------------------------
+Status: Active progress indicator.
+Role: It visually summarizes course progress for the learner.
+What it does: It shows completion ratio and course momentum.
+What works: Progress bars make learning advancement easy to understand.
+What needs review: Progress should match server-backed state exactly.
+Risk: A wrong progress value can create trust issues.
+UI note: The bar should be simple and not too decorative.
+Data note: It relies on completed lesson counts and totals.
+Performance note: Calculation should stay trivial and fast.
+Accessibility note: Numeric progress should be readable in text as well.
+Error handling note: Zero or missing lessons should not break the component.
+Responsive note: It should fit both narrow and wide cards.
+Edge case note: Course resets or changes should update cleanly.
+Integration note: Used in dashboard and learning-related surfaces.
+Testing note: Test zero, partial, and complete progress values.
+Regression watch: Avoid mismatched percentages after schema changes.
+Deployment note: No special backend deployment, but data integrity matters.
+Ownership: Learning UI.
+Priority: Medium.
+Keep: Keep the progress story simple.
+Improve: Ensure the visual percentage and text always agree.
+Next action: Recheck the bar after any progress logic update.
+
+29. `src/components/ContinueLearningCard.tsx`
+-------------------------------------------
+Status: Active re-entry card.
+Role: It helps users resume the right course quickly.
+What it does: It highlights the next best learning action.
+What works: It is a strong dashboard utility component.
+What needs review: It should remain accurate to the actual user state.
+Risk: A stale continue-learning target would frustrate users.
+UI note: The call to action should stand out cleanly.
+Data note: It depends on progress and enrollment lookup.
+Performance note: Should stay lightweight because dashboard uses it often.
+Accessibility note: CTA labels and progress text must be readable.
+Error handling note: Empty state needs a gentle fallback.
+Responsive note: The card should stack well with dashboard sections.
+Edge case note: A user with no enrollments needs a different path.
+Integration note: The dashboard and learning flow rely on this card.
+Testing note: Test continue action, empty state, and multiple enrollments.
+Regression watch: Do not let it point to stale course IDs.
+Deployment note: Data queries must stay in sync with course helpers.
+Ownership: Dashboard and learning.
+Priority: Medium.
+Keep: Keep the card short and actionable.
+Improve: Make the target course state even clearer.
+Next action: Confirm it still matches the latest progress source.
+
+30. `src/components/certificate/CertificateTemplate.tsx`
+-------------------------------------------------------
+Status: New premium certificate renderer.
+Role: Shared visual template for certificate preview and print.
+What it does: It mirrors the HTML reference in React/TSX.
+What works: It centralizes the certificate look and print style.
+What needs review: Long names and course titles need careful spacing.
+Risk: Text overflow or print mismatch can break the premium feel.
+UI note: This is the most visible design element in the certificate flow.
+Data note: It consumes learner, course, score, and QR inputs.
+Performance note: It should remain lightweight and reusable.
+Accessibility note: The contrast and label hierarchy should stay strong.
+Error handling note: Missing QR or verify URL should degrade safely.
+Responsive note: It needs strong validation on compact widths.
+Edge case note: Long learner names and long course titles are the biggest risk.
+Integration note: Used by the checkout page and certificate downloads.
+Testing note: Test print, PDF save, long names, and long course titles.
+Regression watch: Do not duplicate certificate markup in page files.
+Deployment note: Fonts and print styles must load reliably.
+Ownership: Frontend and design.
+Priority: High.
+Keep: Keep it as the single certificate visual source.
+Improve: Tune spacing for long names and mobile widths.
+Next action: Compare the live template against the HTML reference.
+
+31. `src/components/ui/tooltip.tsx`
+----------------------------------
+Status: Shared UI utility with build warning history.
+Role: Provides tooltip behavior across the design system.
+What it does: It supports hover or focus help text in small UI areas.
+What works: UI primitives help keep the app consistent.
+What needs review: Build warning history means the file should be checked carefully.
+Risk: Sourcemap or build noise can hide more important issues.
+UI note: Tooltips should remain subtle and accessible.
+Data note: No direct data role.
+Performance note: Shared primitives should stay tiny.
+Accessibility note: Tooltip triggers and content must work with keyboard users.
+Error handling note: Broken primitives affect many UI surfaces at once.
+Responsive note: Tooltips should not overflow small screens.
+Edge case note: Long tooltip text can become awkward on mobile.
+Integration note: Used by higher-level UI components.
+Testing note: Test hover, focus, and dismiss behavior.
+Regression watch: Avoid introducing more build warnings here.
+Deployment note: Keep this file clean because it affects many screens.
+Ownership: Design system.
+Priority: Medium.
+Keep: Keep primitives minimal.
+Improve: Re-check build output if warnings reappear.
+Next action: Confirm the tooltip compiles cleanly with the certificate work.
+
+32. `supabase/functions/ai-tutor/index.ts`
+-----------------------------------------
+Status: Active tutor backend.
+Role: Lesson-aware AI tutor with quota and history logic.
+What it does: It loads lesson context, checks access, stores chat, and answers questions.
+What works: The tutor stays focused on the current lesson and user.
+What needs review: Debug logging should be trimmed once production behavior is stable.
+Risk: Prompt drift or quota bugs can confuse users or waste tokens.
+UI note: The tutor panel depends on this backend feeling fast and relevant.
+Data note: Usage and chat history are server-backed.
+Performance note: AI latency should be masked by good loading states in the UI.
+Accessibility note: The tutor UI must remain keyboard friendly.
+Error handling note: Quota, auth, and backend failures need clear responses.
+Responsive note: Reply length should remain readable on smaller screens.
+Edge case note: Wrong-course context should never leak into answers.
+Integration note: This function works with AIChatPanel and the client helper.
+Testing note: Test history load, quota limits, wrong lesson, and failed requests.
+Regression watch: Do not reintroduce the old Gemini or duplicate provider path.
+Deployment note: Requires the AI tutor SQL tables and Groq secrets.
+Ownership: Backend/AI.
+Priority: Medium.
+Keep: Keep the lesson-aware guardrails.
+Improve: Reduce noisy debug output.
+Next action: Verify production logs and usage behavior.
+
+33. `supabase/functions/create-razorpay-order/index.ts`
+------------------------------------------------------
+Status: Order creation function is updated.
+Role: Server-side Razorpay order creation and payment record insertion.
+What it does: It authenticates the user, validates intent, and creates the payment order.
+What works: Pro and certificate payment intents are now supported.
+What needs review: Amount and purpose validation must stay strict.
+Risk: A mismatch here can break payment trust and entitlement flow.
+UI note: Checkout trust depends on this endpoint returning clean data.
+Data note: Certificate payments must store course_id in the payment row.
+Performance note: This should stay fast enough for a checkout experience.
+Accessibility note: No direct UI role, but errors should be readable in the app.
+Error handling note: Missing secrets, missing auth, and invalid inputs need clear messages.
+Responsive note: No direct layout role.
+Edge case note: Unsupported payment purposes should fail safely.
+Integration note: This function is used by the Razorpay client helper.
+Testing note: Test Pro, certificate, invalid amount, and missing courseId paths.
+Regression watch: Do not allow public or unauthenticated writes.
+Deployment note: Razorpay and Supabase secrets must be configured.
+Ownership: Backend/payments.
+Priority: High.
+Keep: Keep order creation server-authoritative.
+Improve: Log only useful checkout context.
+Next action: Reconfirm the certificate payment branch in production.
+
+34. `supabase/functions/verify-razorpay-payment/index.ts`
+--------------------------------------------------------
+Status: Verification endpoint is updated.
+Role: It confirms payment signatures and marks entitlement outcomes.
+What it does: It authenticates the user, verifies signatures, and updates payment records.
+What works: The payment flow remains server-backed and secure.
+What needs review: Certificate and Pro branches must stay distinct.
+Risk: If verification drifts, entitlement state becomes unreliable.
+UI note: Success and failure messages must stay trustworthy.
+Data note: Payment records are the source of truth after checkout.
+Performance note: This should respond quickly after checkout success.
+Accessibility note: App error messages must remain human-readable.
+Error handling note: Missing record, bad signature, and wrong ownership need clear handling.
+Responsive note: No direct layout role.
+Edge case note: Duplicate verification must not break state.
+Integration note: Used after Razorpay checkout success from the client helper.
+Testing note: Test wrong signature, already paid, and certificate success cases.
+Regression watch: Do not bypass the payment record or user ownership.
+Deployment note: Requires service-role access and the proper secret config.
+Ownership: Backend/payments.
+Priority: High.
+Keep: Keep verification mandatory.
+Improve: Return clearer messages for certificate unlock.
+Next action: Confirm certificate verification updates the UI correctly.
+
+35. `supabase/functions/final-exam/index.ts`
+-------------------------------------------
+Status: Final exam backend is active.
+Role: It starts, grades, and stores final exam attempts.
+What it does: It checks enrollment, starts attempts, and grades answers server-side.
+What works: Grading and pass/fail logic are authoritative.
+What needs review: The course-to-certificate handoff must remain aligned with the result.
+Risk: Any scoring mismatch can affect certificate eligibility.
+UI note: The result screen is only as trustworthy as this function.
+Data note: Attempts, scores, and course completion are stored server-side.
+Performance note: The exam flow must remain responsive because timing matters.
+Accessibility note: Clear output helps the learner understand result states.
+Error handling note: Start, submit, and load errors need specific messages.
+Responsive note: The function itself is backend only, but the page it drives must adapt well.
+Edge case note: Timeout and duplicate submission cases must remain deterministic.
+Integration note: Used by finalExam.ts and the final exam page.
+Testing note: Test pass, fail, timeout, and resubmission behavior.
+Regression watch: Do not shift grading back into the client.
+Deployment note: Question bank and attempt tables must be deployed too.
+Ownership: Backend/exam.
+Priority: High.
+Keep: Keep grading server-side.
+Improve: Add more useful attempt metadata if needed.
+Next action: Reconfirm the passing-score logic matches the UI.
+
+36. `supabase/learning_rls.sql`
+------------------------------
+Status: Learning RLS file is important and healthy.
+Role: It protects learning data access by user ownership.
+What it does: It sets policies for courses, modules, lessons, quizzes, enrollments, and progress.
+What works: Users should only see their own learning records.
+What needs review: Policy drift can happen when schema changes.
+Risk: Broken RLS can hide data or expose data incorrectly.
+UI note: Many pages will look empty or broken if policies are wrong.
+Data note: This file should always mirror the live schema.
+Performance note: Policies should stay as simple as possible.
+Accessibility note: No direct role.
+Error handling note: Permission errors should be investigated, not ignored.
+Responsive note: No direct role.
+Edge case note: Cross-user data access must never succeed.
+Integration note: Every learning page and helper depends on these rules.
+Testing note: Test sign-in, sign-out, and cross-user access attempts.
+Regression watch: Do not relax policies without a strong reason.
+Deployment note: Run it whenever the schema changes.
+Ownership: Backend/db.
+Priority: High.
+Keep: Keep least-privilege access.
+Improve: Document policy changes clearly.
+Next action: Recheck policies after any schema migration.

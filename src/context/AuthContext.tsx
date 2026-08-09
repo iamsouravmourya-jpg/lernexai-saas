@@ -44,24 +44,21 @@ function mapSupabaseUser(supabaseUser: SupabaseUser | null | undefined): User | 
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-          const [loading, setLoading] = useState(true);
+          const [loading, setLoading] = useState(false);
 
           useEffect(() => {
             const initializeAuth = async () => {
               if (!isSupabaseConfigured) {
                 setUser(null);
-                setLoading(false);
                 return;
               }
 
               try {
-                const { data: { user: currentUser } } = await supabase.auth.getUser();
-                setUser(mapSupabaseUser(currentUser));
+                const { data: { session } } = await supabase.auth.getSession();
+                setUser(mapSupabaseUser(session?.user ?? null));
               } catch (error) {
                 console.error("Auth initialization failed", error);
                 setUser(null);
-              } finally {
-                setLoading(false);
               }
             };
 

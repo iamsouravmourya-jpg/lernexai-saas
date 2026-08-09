@@ -70,14 +70,6 @@ serve(async (req) => {
       return jsonResponse({ error: order?.error?.description || "Failed to create Razorpay order" }, 502);
     }
 
-    console.log("[create-razorpay-order] Fresh order created", {
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      receipt: order.receipt,
-      userId: user.id,
-    });
-
     const { error: dbError } = await supabase.from("payments").insert({
       user_id: user.id,
       amount: expectedAmount,

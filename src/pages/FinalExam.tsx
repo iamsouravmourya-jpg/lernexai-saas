@@ -95,6 +95,7 @@ export default function FinalExam() {
     }
   }, [courseId, attemptId]);
 
+  // Timer countdown
   useEffect(() => {
     if (stage !== "in_progress" || deadline === null) return;
 
@@ -110,6 +111,20 @@ export default function FinalExam() {
     const interval = window.setInterval(tick, 1000);
     return () => window.clearInterval(interval);
   }, [stage, deadline, submitExam, answers]);
+
+  // Auto-redirect passing exams to certificate checkout after brief celebration
+  useEffect(() => {
+    if (stage === "result" && result) {
+      const isPassing = result.passed || result.score >= 40;
+      if (isPassing && courseId) {
+        const timer = setTimeout(() => {
+          setLocation(`/certificate/${courseId}?fromExam=true`);
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+    }
+    return undefined;
+  }, [stage, result, courseId]);
 
   async function handleStart() {
     if (!courseId) return;
@@ -197,17 +212,33 @@ export default function FinalExam() {
 
   if (stage === "result" && result) {
     const isPassing = result.passed || result.score >= 40;
+
+    // For passing exams: show brief celebration before redirect
+    if (isPassing) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-gray-50 px-6 text-center">
+          <Trophy className="h-20 w-20 text-green-600 animate-bounce" aria-hidden="true" />
+          <div>
+            <h1 className="text-5xl font-bold text-gray-900">{result.score}%</h1>
+            <p className="mt-3 text-xl font-semibold text-green-700">Congratulations! You passed!</p>
+            <p className="mt-2 text-sm text-gray-600">Redirecting to certificate checkout...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // For failing exams: show full result page
     return (
       <div className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
         <div className="mx-auto max-w-2xl rounded-3xl border border-gray-200 bg-white p-6 shadow-sm sm:p-10">
           <div className="text-center">
-            <Trophy className={`mx-auto h-12 w-12 ${result.passed ? "text-green-600" : "text-amber-600"}`} aria-hidden="true" />
+            <Trophy className="mx-auto h-12 w-12 text-amber-600" aria-hidden="true" />
             <p className="mt-3 text-xs font-bold uppercase tracking-wider text-gray-500">Final exam result</p>
             <h1 className="mt-1 text-4xl font-bold text-gray-900">{result.score}%</h1>
             <p className="mt-2 text-sm text-gray-600">You answered {result.correctCount} of {result.total} questions correctly.</p>
             {result.timedOut && <p className="mt-1 text-sm font-semibold text-amber-700">Time expired before all answers were confirmed.</p>}
-            <p className={`mt-3 text-base font-semibold ${isPassing ? "text-green-700" : "text-amber-700"}`}>
-              {isPassing ? "You passed! Your certificate is unlocked." : `Score ${passingScore}% or higher to pass.`}
+            <p className="mt-3 text-base font-semibold text-amber-700">
+              Score {passingScore}% or higher to pass.
             </p>
           </div>
 
@@ -228,14 +259,7 @@ export default function FinalExam() {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <button onClick={() => setLocation(`/learning/${courseId}`)} className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">Back to course</button>
-            {isPassing ? (
-              <>
-                <button onClick={() => setLocation(`/certificate/${courseId}?score=${result.score}`)} className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-purple-600 px-5 py-3 text-sm font-semibold text-white hover:bg-purple-700">Get certificate</button>
-                <button onClick={() => setLocation("/dashboard")} className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">Go to dashboard</button>
-              </>
-            ) : (
-              <button onClick={() => setStage("intro")} className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-purple-600 px-5 py-3 text-sm font-semibold text-white hover:bg-purple-700">Try again</button>
-            )}
+            <button onClick={() => setStage("intro")} className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-purple-600 px-5 py-3 text-sm font-semibold text-white hover:bg-purple-700">Try again</button>
           </div>
         </div>
       </div>

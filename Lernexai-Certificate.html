@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Certificate - LernexAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0a1628;
+            --navy-md: #12294a;
+            --navy-light: #1a3a5c;
+            --green: #064e3b;
+            --gold: #ca8a04;
+            --gold-light: #eab308;
+            --gold-dark: #a16207;
+            --cream: #fffbeb;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+            body {
+                background: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .print-hide { display: none !important; }
+            .certificate {
+                width: 297mm !important; /* A4 Landscape Width */
+                height: 210mm !important; /* A4 Landscape Height */
+                box-shadow: none !important;
+                border: 10px solid #12294a !important;
+                outline: 2px solid #ca8a04 !important;
+                transform: none !important;
+                margin: 0 auto !important;
+                page-break-after: avoid;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .corner-ornament { display: block !important; }
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            background: #e8ecf1;
+            font-family: 'Lora', serif;
+            padding: 40px 20px;
+            gap: 25px;
+        }
+
+        /* --- Editor Form --- */
+        .edit-form {
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+            max-width: 1100px;
+            width: 100%;
+            z-index: 100;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label {
+            font-weight: 700; font-size: 11px; color: #12294a;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .form-group input, .form-group select {
+            padding: 10px 14px; border: 1.5px solid #d1d5db; border-radius: 8px;
+            font-size: 14px; width: 190px; transition: 0.3s;
+        }
+        .form-group input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 0 3px rgba(202,138,4,0.1); }
+
+        .btn {
+            padding: 11px 24px; border: none; border-radius: 8px;
+            cursor: pointer; font-weight: 600; font-size: 13px;
+            transition: 0.3s; font-family: 'Montserrat', sans-serif;
+        }
+        .btn-primary { background: #12294a; color: #fff; }
+        .btn-primary:hover { background: #1a3a5c; transform: translateY(-2px); }
+        .btn-linkedin { background: #0077B5; color: #fff; }
+
+        /* --- Certificate Main --- */
+        .certificate {
+            width: 1100px;
+            height: 780px;
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.2);
+            border: 8px solid #12294a;
+            outline: 2px solid #ca8a04;
+            outline-offset: -15px;
+            flex-shrink: 0;
+        }
+
+        .wave-top {
+            position: absolute;
+            top: 0; left: 0; z-index: 1;
+            width: 100%; height: 230px;
+            background: linear-gradient(160deg, #12294a 0%, #1a3a5c 25%, #064e3b 55%, #047857 80%, #12294a 100%);
+            clip-path: polygon(0 0, 100% 0, 100% 45%, 82% 65%, 63% 48%, 40% 72%, 18% 52%, 0 65%);
+        }
+
+        .corner-ornament {
+            position: absolute; width: 40px; height: 40px; z-index: 5;
+        }
+        .corner-ornament::before, .corner-ornament::after {
+            content: ''; position: absolute; background: #ca8a04;
+        }
+        .corner-ornament::before { width: 100%; height: 3px; top: 0; }
+        .corner-ornament::after { width: 3px; height: 100%; left: 0; }
+        
+        .co-tr { top: 35px; right: 35px; transform: rotate(90deg); }
+        .co-tl { top: 35px; left: 35px; }
+        .co-br { bottom: 35px; right: 35px; transform: rotate(180deg); }
+        .co-bl { bottom: 35px; left: 35px; transform: rotate(270deg); }
+
+        .content {
+            position: relative; z-index: 3;
+            height: 100%; padding: 45px 70px;
+            display: flex; flex-direction: column;
+            text-align: center;
+        }
+
+        .header { display: flex; justify-content: center; margin-bottom: 25px; }
+        .brand { display: flex; align-items: center; gap: 15px; }
+        .logo {
+            width: 70px; height: 70px; background: #fff; border-radius: 12px;
+            display: grid; place-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+        .logo svg { width: 50px; height: 50px; fill: #12294a; }
+
+        .brand h2 { font-family: 'Cormorant Garamond', serif; font-size: 42px; color: #fff; letter-spacing: 5px; font-weight: 700; }
+        .brand p { color: rgba(255,255,255,0.9); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-family: 'Montserrat'; }
+
+        .title-section h1 {
+            font-family: 'Playfair Display SC', serif; font-size: 60px;
+            color: #12294a; letter-spacing: 12px; margin-top: 10px;
+        }
+        .gold-line { width: 300px; height: 3px; margin: 15px auto; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+
+        .subtitle { font-style: italic; font-size: 19px; color: #5a6270; margin-bottom: 15px; }
+        .recipient-name {
+            font-family: 'Cormorant Garamond', serif; font-size: 65px;
+            font-weight: 700; color: #12294a; border-bottom: 3px solid var(--gold);
+            padding: 0 40px 5px; display: inline-block; margin-bottom: 20px;
+        }
+
+        .course-name { font-size: 20px; font-weight: 600; color: #12294a; margin: 10px 0; font-family: 'Montserrat'; }
+        .grade-display { font-size: 18px; color: #4a5568; margin-top: 15px; }
+        .grade-text-simple { font-weight: 800; color: #000; font-size: 26px; }
+
+        /* Footer Stuff */
+        .footer-section {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            margin-top: auto; padding-bottom: 20px;
+        }
+        .sig-block { width: 220px; text-align: center; }
+        .sig-line { height: 1.5px; background: #cbd5e1; margin-bottom: 10px; }
+        .sig-name { font-family: 'Great Vibes', cursive; font-size: 32px; color: #12294a; }
+        .sig-role { font-size: 11px; font-weight: 700; text-transform: uppercase; font-family: 'Montserrat'; color: #64748b; }
+
+        /* Badge & QR */
+        .badge-qr-container { display: flex; align-items: center; gap: 30px; }
+        .ribbon-circle {
+            width: 110px; height: 110px; border-radius: 50%;
+            background: radial-gradient(circle, #fbbf24, #ca8a04);
+            border: 4px double rgba(255,255,255,0.3);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #fff; box-shadow: 0 10px 20px rgba(202,138,4,0.3);
+        }
+        .qr-box {
+            width: 85px; height: 85px; padding: 5px; background: #fff;
+            border: 1px solid #e2e8f0; border-radius: 8px;
+        }
+        .qr-box img { width: 100%; height: 100%; }
+
+        .footer-note {
+            border-top: 1px solid #e5e7eb; padding-top: 15px;
+            font-family: 'Montserrat', sans-serif; font-size: 11px;
+            color: #4a5568; line-height: 1.6;
+        }
+        .verify-link a { color: #12294a; font-weight: 700; text-decoration: none; }
+        .legal-note { font-size: 9px; opacity: 0.7; margin-top: 5px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="edit-form print-hide">
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="editName" value="Rahul Sharma">
+        </div>
+        <div class="form-group">
+            <label>Course Name</label>
+            <input type="text" id="editCourse" value="Full Stack Development & AI">
+        </div>
+        <div class="form-group">
+            <label>Grade</label>
+            <select id="editGrade">
+                <option value="O">O - Outstanding</option>
+                <option value="A+">A+ - Excellent</option>
+                <option value="A">A - Very Good</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Cert ID</label>
+            <input type="text" id="editCertId" value="LXAI-2026-1049">
+        </div>
+        <div class="form-group">
+            <label>Date</label>
+            <input type="text" id="editDate" value="27 July 2026">
+        </div>
+        <button class="btn btn-primary" onclick="update()">Update</button>
+        <button class="btn btn-linkedin" onclick="shareOnLinkedIn()">Share</button>
+        <button class="btn" style="background:#22c55e; color:white;" onclick="window.print()">Print PDF</button>
+    </div>
+
+    <div class="certificate">
+        <!-- Ornaments -->
+        <div class="corner-ornament co-tl"></div>
+        <div class="corner-ornament co-tr"></div>
+        <div class="corner-ornament co-bl"></div>
+        <div class="corner-ornament co-br"></div>
+
+        <div class="wave-top"></div>
+
+        <div class="content">
+            <div class="header">
+                <div class="brand">
+                    <div class="logo">
+                        <svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.45l8.27 14.3H3.73L12 5.45zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/></svg>
+                    </div>
+                    <div>
+                        <h2>LERNEXAI</h2>
+                        <p>Learn • Execute • AI</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="title-section">
+                <h1>CERTIFICATE</h1>
+                <p style="letter-spacing: 5px; font-weight: 600; color: #ca8a04; font-size: 14px;">OF COMPLETION</p>
+                <div class="gold-line"></div>
+            </div>
+
+            <p class="subtitle">This is to certify that</p>
+            
+            <div class="recipient-name" id="certName">Rahul Sharma</div>
+
+            <p style="font-size: 16px; color: #4a5568; max-width: 700px; margin: 0 auto;">
+                has successfully completed the intensive training program and demonstrated exceptional proficiency in:
+            </p>
+
+            <div class="course-name" id="certCourse">Full Stack Development & AI Integration</div>
+            
+            <div class="grade-display">
+                Grade Achieved: <span class="grade-text-simple" id="gradeBadge">" O "</span>
+            </div>
+
+            <div class="footer-section">
+                <div class="sig-block">
+                    <div class="sig-name">Sourav Maurya</div>
+                    <div class="sig-line"></div>
+                    <div class="sig-role">Founder & CEO</div>
+                </div>
+
+                <div class="badge-qr-container">
+                    <div class="ribbon-circle">
+                        <span style="font-size: 24px;">🏅</span>
+                        <span style="font-size: 10px; font-weight: 800; letter-spacing: 1px;">VERIFIED</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="qr-box">
+                            <!-- Placeholder QR -->
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://lernexai.com/verify/LXAI-2026-1049" alt="QR" id="certQR">
+                        </div>
+                        <p style="font-size: 8px; margin-top: 5px; font-weight: 700;">SCAN TO VERIFY</p>
+                    </div>
+                </div>
+
+                <div class="sig-block">
+                    <div class="sig-name" style="font-family: 'Cormorant Garamond'; font-weight: 700; font-size: 26px;">LernexAI</div>
+                    <div class="sig-line"></div>
+                    <div class="sig-role">Official Authority</div>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                <div>Verify this credential at: <a href="#" id="verifyLink">lernexai.com/verify/LXAI-2026-1049</a></div>
+                <div>Certificate ID: <strong id="certId">LXAI-2026-1049</strong> • Issued on <strong id="certDate">27 July 2026</strong></div>
+                <div class="legal-note">© 2025–2026 LernexAI Academy. This document is a digital representation of academic achievement.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function update() {
+            const name = document.getElementById('editName').value;
+            const course = document.getElementById('editCourse').value;
+            const id = document.getElementById('editCertId').value;
+            const date = document.getElementById('editDate').value;
+            const grade = document.getElementById('editGrade').value;
+
+            document.getElementById('certName').textContent = name;
+            document.getElementById('certCourse').textContent = course;
+            document.getElementById('certId').textContent = id;
+            document.getElementById('certDate').textContent = date;
+            document.getElementById('gradeBadge').textContent = `" ${grade} "`;
+
+            // Update QR & Link
+            const verifyURL = `https://lernexai.com/verify/${id}`;
+            document.getElementById('verifyLink').href = verifyURL;
+            document.getElementById('verifyLink').textContent = `lernexai.com/verify/${id}`;
+            document.getElementById('certQR').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${verifyURL}`;
+        }
+
+        function shareOnLinkedIn() {
+            const id = document.getElementById('editCertId').value;
+            const url = encodeURIComponent(`https://lernexai.com/verify/${id}`);
+            window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
+        }
+    </script>
+</body>
+</html>

@@ -2,26 +2,29 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
-import Home from '@/pages/Home';
-import Privacy from '@/pages/Privacy';
-import Terms from '@/pages/Terms';
-import Contact from '@/pages/Contact';
-import AboutFounder from '@/pages/AboutFounder';
-import Auth from '@/pages/Auth';
-import AuthCallback from '@/pages/AuthCallback';
-import Dashboard from '@/pages/Dashboard';
-import Upgrade from '@/pages/Upgrade';
-import Browse from '@/pages/Browse';
-import CourseDetail from '@/pages/CourseDetail';
-import Learning from '@/pages/Learning';
-import MyLearning from '@/pages/MyLearning';
-import FinalExam from '@/pages/FinalExam';
-import Certificates from '@/pages/Certificates';
-import CertificateCheckoutPage from '@/pages/CertificateCheckoutPage';
 import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
+
+// Lazy load pages for code splitting
+const Home = lazy(() => import('@/pages/Home'));
+const Privacy = lazy(() => import('@/pages/Privacy'));
+const Terms = lazy(() => import('@/pages/Terms'));
+const Contact = lazy(() => import('@/pages/Contact'));
+const AboutFounder = lazy(() => import('@/pages/AboutFounder'));
+const Auth = lazy(() => import('@/pages/Auth'));
+const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Upgrade = lazy(() => import('@/pages/Upgrade'));
+const Browse = lazy(() => import('@/pages/Browse'));
+const CourseDetail = lazy(() => import('@/pages/CourseDetail'));
+const Learning = lazy(() => import('@/pages/Learning'));
+const MyLearning = lazy(() => import('@/pages/MyLearning'));
+const FinalExam = lazy(() => import('@/pages/FinalExam'));
+const Certificates = lazy(() => import('@/pages/Certificates'));
+const CertificateCheckoutPage = lazy(() => import('@/pages/CertificateCheckoutPage'));
+const VerifyCertificate = lazy(() => import('@/pages/VerifyCertificate'));
 
 const queryClient = new QueryClient();
 
@@ -53,45 +56,60 @@ function ProtectedRoute({ component: Component }: { component: React.FC }) {
   return <Component />;
 }
 
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/privacy" component={Privacy} />
-      <Route path="/terms" component={Terms} />
-      <Route path="/contact" component={Contact} />
-      <Route path="/about-founder" component={AboutFounder} />
-      <Route path="/auth" component={Auth} />
-      <Route path="/auth/callback" component={AuthCallback} />
-      <Route path="/upgrade">
-        <ProtectedRoute component={Upgrade} />
-      </Route>
-      <Route path="/dashboard">
-        <ProtectedRoute component={Dashboard} />
-      </Route>
-      <Route path="/browse">
-        <ProtectedRoute component={Browse} />
-      </Route>
-      <Route path="/course/:id">
-        <ProtectedRoute component={CourseDetail} />
-      </Route>
-      <Route path="/my-learning">
-        <ProtectedRoute component={MyLearning} />
-      </Route>
-      <Route path="/learning/:courseId">
-        <ProtectedRoute component={Learning} />
-      </Route>
-      <Route path="/final-exam/:courseId">
-        <ProtectedRoute component={FinalExam} />
-      </Route>
-      <Route path="/certificate">
-        <ProtectedRoute component={Certificates} />
-      </Route>
-      <Route path="/certificate/:courseId">
-        <ProtectedRoute component={CertificateCheckoutPage} />
-      </Route>
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<LoadingFallback />}>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/privacy" component={Privacy} />
+        <Route path="/terms" component={Terms} />
+        <Route path="/contact" component={Contact} />
+        <Route path="/about-founder" component={AboutFounder} />
+        <Route path="/verify" component={VerifyCertificate} />
+        <Route path="/verify/:certificateId" component={VerifyCertificate} />
+        <Route path="/auth" component={Auth} />
+        <Route path="/auth/callback" component={AuthCallback} />
+        <Route path="/upgrade">
+          <ProtectedRoute component={Upgrade} />
+        </Route>
+        <Route path="/dashboard">
+          <ProtectedRoute component={Dashboard} />
+        </Route>
+        <Route path="/browse">
+          <ProtectedRoute component={Browse} />
+        </Route>
+        <Route path="/course/:id">
+          <ProtectedRoute component={CourseDetail} />
+        </Route>
+        <Route path="/my-learning">
+          <ProtectedRoute component={MyLearning} />
+        </Route>
+        <Route path="/learning/:courseId">
+          <ProtectedRoute component={Learning} />
+        </Route>
+        <Route path="/final-exam/:courseId">
+          <ProtectedRoute component={FinalExam} />
+        </Route>
+        <Route path="/certificate">
+          <ProtectedRoute component={Certificates} />
+        </Route>
+        <Route path="/certificate/:courseId">
+          <ProtectedRoute component={CertificateCheckoutPage} />
+        </Route>
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 

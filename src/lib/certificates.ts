@@ -1,5 +1,40 @@
 import { supabase } from "./supabase";
 
+export function buildCertificateId(courseId: string, score: number): string {
+  return `LXAI-${new Date().getFullYear()}-${courseId.slice(0, 4).toUpperCase()}-${Math.floor(score)}`;
+}
+
+export interface CertificateVerification {
+  valid: boolean;
+  certificate_id?: string;
+  full_name?: string;
+  course_title?: string;
+  grade?: string;
+  score?: number;
+  issued_at?: string;
+}
+
+export async function verifyCertificatePublic(certificateId: string): Promise<CertificateVerification> {
+  const trimmed = certificateId.trim();
+  if (!trimmed) {
+    return { valid: false };
+  }
+
+  const { data, error } = await supabase.rpc("verify_certificate_public", {
+    p_certificate_id: trimmed,
+  });
+
+  if (error) {
+    throw new Error("Could not verify certificate. Please try again.");
+  }
+
+  const result = data as CertificateVerification | null;
+  if (!result || result.valid !== true) {
+    return { valid: false };
+  }
+  return result;
+}
+
 export interface CertificatePurchase {
   id: string;
   user_id: string;
@@ -49,8 +84,9 @@ export async function createCertificatePurchase(params: {
   grade: string;
   fullName: string;
   paymentId?: string;
+  certificateId?: string;
 }): Promise<CertificatePurchase> {
-  const certificateId = `LXAI-${new Date().getFullYear()}-${params.courseId.slice(0, 4).toUpperCase()}-${params.score}`;
+  const certificateId = params.certificateId || buildCertificateId(params.courseId, params.score);
 
   const { data, error } = await supabase
     .from("certificate_purchases")
@@ -68,7 +104,7 @@ export async function createCertificatePurchase(params: {
     .select()
     .single();
 
-  if (error) throw new Error("Failed to create certificate purchase");
+  if (error) throw new Error(`Failed to create certificate purchase: ${error.message}`);
   return data;
 }
 

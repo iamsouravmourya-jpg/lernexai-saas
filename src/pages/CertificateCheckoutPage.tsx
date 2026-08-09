@@ -1,12 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useParams } from "wouter";
-import { Award, ArrowLeft, Download, Share2, CheckCircle2, Loader2, CreditCard } from "lucide-react";
+import { Award, ArrowLeft, Download, Share2, CheckCircle2, Loader2, CreditCard, Trophy } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { createOrder, openRazorpayCheckout, verifyPayment } from "@/lib/razorpay";
 import { fetchCourseWithModules, type Course } from "@/lib/course";
+import { fetchFinalExamStatus } from "@/lib/finalExam";
 import { useToast } from "@/hooks/use-toast";
 import { getCertificateGrade } from "@/lib/certificate";
-import { fetchCertificatePurchaseByCourse, createCertificatePurchase, recordCertificateDownload } from "@/lib/certificates";
+import { getAppUrl } from "@/lib/siteUrl";
+import {
+  fetchCertificatePurchaseByCourse,
+  recordCertificateDownload,
+  buildCertificateId,
+  createCertificatePurchase,
+  type CertificatePurchase,
+} from "@/lib/certificates";
 
 function formatDate(value: Date) {
   return value.toLocaleDateString("en-IN", {
@@ -31,6 +39,9 @@ export default function CertificateCheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [nameError, setNameError] = useState(false);
   const [savedName, setSavedName] = useState<string | null>(null);
+  const [fromExam, setFromExam] = useState(false);
+  const [examPassed, setExamPassed] = useState(false);
+  const [purchaseRecord, setPurchaseRecord] = useState<CertificatePurchase | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -44,22 +55,28 @@ export default function CertificateCheckoutPage() {
 
       try {
         const params = new URLSearchParams(location.split("?")[1] || "");
-        const scoreFromQuery = Number(params.get("score") || "");
-        const alreadyPurchased = params.get("purchased") === "true";
-        console.log("CertificateCheckout - URL:", location);
-        console.log("CertificateCheckout - Score from query:", scoreFromQuery);
-        console.log("CertificateCheckout - Params:", Object.fromEntries(params));
+        const isFromExam = params.get("fromExam") === "true";
         const loadedCourse = await fetchCourseWithModules(courseId);
 
         if (!active) return;
         setCourse(loadedCourse);
-        setScore(Number.isFinite(scoreFromQuery) && scoreFromQuery > 0 ? scoreFromQuery : null);
         setFullName(user?.name || "");
+        setFromExam(isFromExam);
 
-        // If already purchased via URL param, set purchased state
-        if (alreadyPurchased) {
-          setIsPurchased(true);
+        let authoritativeScore: number | null = null;
+        let passedExam = false;
+
+        try {
+          const lastAttempt = await fetchFinalExamStatus(courseId);
+          if (lastAttempt?.passed === true && lastAttempt.score != null) {
+            passedExam = true;
+            authoritativeScore = lastAttempt.score;
+          }
+        } catch {
+          // Exam status unavailable — checkout stays locked until we can confirm pass.
         }
+
+        setExamPassed(passedExam);
 
         // Check if certificate was already purchased for this specific course
         try {
@@ -69,7 +86,11 @@ export default function CertificateCheckoutPage() {
               setIsPurchased(true);
               setSavedName(purchase.full_name);
               setFullName(purchase.full_name);
+              setPurchaseRecord(purchase);
+              setScore(purchase.score);
+              setExamPassed(true);
             } else {
+              setScore(authoritativeScore);
               // Pre-fill name from last certificate purchase if available
               const { fetchUserCertificatePurchases } = await import("@/lib/certificates");
               const allPurchases = await fetchUserCertificatePurchases(user.id);
@@ -77,9 +98,11 @@ export default function CertificateCheckoutPage() {
                 setFullName(allPurchases[0].full_name);
               }
             }
+          } else {
+            setScore(authoritativeScore);
           }
         } catch {
-          // Error checking purchase, assume not purchased
+          setScore(authoritativeScore);
         }
 
         setLoading(false);
@@ -94,15 +117,32 @@ export default function CertificateCheckoutPage() {
     return () => {
       active = false;
     };
-  }, [courseId, location, user?.name]);
+  }, [courseId, location, user?.id, user?.name]);
 
   const grade = useMemo(() => (score !== null ? getCertificateGrade(score) : null), [score]);
-  const canUnlockCertificate = score !== null && score >= 40;
+  const canUnlockCertificate = examPassed && score !== null && score >= 40;
 
   const handlePay = async () => {
+    if (!canUnlockCertificate) {
+      toast({
+        title: "Final exam required",
+        description: "Pass the final exam before purchasing a certificate.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (!course || !user?.email || !fullName.trim()) {
       setNameError(true);
       toast({ title: "Missing details", description: "Please enter your full name and try again.", variant: "destructive" });
+      return;
+    }
+    // Check if user already has a certificate for this course
+    if (purchaseRecord) {
+      toast({
+        title: "Certificate already purchased",
+        description: "You have already purchased a certificate for this course.",
+        variant: "destructive",
+      });
       return;
     }
     setNameError(false);
@@ -118,34 +158,39 @@ export default function CertificateCheckoutPage() {
         userEmail: user.email,
         onSuccess: async (response) => {
           try {
-            const verification = await verifyPayment({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
+            // Generate unique random certificate ID
+            const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
+            const certificateId = `LXAI-${new Date().getFullYear()}-${randomPart}`;
 
-            if (verification.success) {
-              setIsPurchased(true);
-              setSavedName(fullName.trim());
-              if (course && grade && score !== null && user.id) {
-                try {
-                  await createCertificatePurchase({
-                    userId: user.id,
-                    courseId,
-                    courseTitle: course.title,
-                    score,
-                    grade: grade.grade,
-                    fullName: fullName.trim(),
-                    paymentId: response.razorpay_payment_id,
-                  });
-                } catch (saveError) {
-                  console.error("Failed to save certificate purchase:", saveError);
-                }
-              }
-              toast({ title: "Certificate unlocked", description: "Your verified certificate is ready to download.", variant: "default" });
-            } else {
-              throw new Error(verification.error || verification.message || "Payment verification failed.");
+            // Create certificate purchase record client-side
+            if (user?.id) {
+              await createCertificatePurchase({
+                userId: user.id,
+                courseId,
+                courseTitle: course.title,
+                score,
+                grade: grade?.grade || "",
+                fullName: fullName.trim(),
+                paymentId: response.razorpay_payment_id,
+                certificateId,
+              });
             }
+
+            setIsPurchased(true);
+            setSavedName(fullName.trim());
+
+            // Refresh purchase record from server
+            if (user?.id) {
+              try {
+                const purchase = await fetchCertificatePurchaseByCourse(user.id, courseId);
+                if (purchase) {
+                  setPurchaseRecord(purchase);
+                }
+              } catch (refreshError) {
+                console.error("Failed to refresh certificate purchase:", refreshError);
+              }
+            }
+            toast({ title: "Certificate unlocked", description: "Your verified certificate is ready to download.", variant: "default" });
           } catch (payError) {
             toast({ title: "Payment issue", description: payError instanceof Error ? payError.message : "Verification failed.", variant: "destructive" });
           }
@@ -165,9 +210,9 @@ export default function CertificateCheckoutPage() {
     if (!course || score === null || !fullName.trim()) return;
 
     const issuedDate = formatDate(new Date());
-    // Generate consistent certificate ID based on course and user
-    const certId = `LXAI-${new Date().getFullYear()}-${courseId.slice(0, 4).toUpperCase()}-${Math.floor(score)}`;
-    const verifyUrl = `https://lernexai.com/verify/${certId}`;
+    const certId =
+      purchaseRecord?.certificate_id ?? (courseId ? buildCertificateId(courseId, score) : "");
+    const verifyUrl = getAppUrl(`/verify/${encodeURIComponent(certId)}`);
 
     // Record certificate download
     if (user?.id) {
@@ -494,109 +539,164 @@ export default function CertificateCheckoutPage() {
     );
   }
 
-  // For testing: if score is null, set a default score
-  if (score === null) {
-    setScore(85);
+  if (!isPurchased && !examPassed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
+        <div className="max-w-md rounded-3xl border border-amber-200 bg-white p-8 text-center shadow-sm">
+          <Award className="mx-auto h-10 w-10 text-amber-600" aria-hidden="true" />
+          <h1 className="mt-4 text-xl font-bold text-slate-900">Pass the final exam first</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Certificate checkout unlocks only after you pass the final exam for {course.title}. URL scores are not accepted.
+          </p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <button
+              onClick={() => setLocation(`/final-exam/${courseId}`)}
+              className="rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-purple-700"
+            >
+              Go to final exam
+            </button>
+            <button
+              onClick={() => setLocation("/dashboard")}
+              className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Back to dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  // Recalculate grade after score update
   const finalGrade = score !== null ? getCertificateGrade(score) : null;
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-purple-600">Certificate</p>
-            <h1 className="mt-2 text-3xl font-bold text-slate-900">Get your verified certificate</h1>
-            <p className="mt-2 text-sm text-slate-600">Complete the payment, add your name, preview the certificate, and download it instantly.</p>
-          </div>
-          <button onClick={() => setLocation("/dashboard")} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to dashboard
-          </button>
-        </div>
-
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-            <div className="rounded-3xl border border-purple-100 bg-gradient-to-br from-indigo-600 via-purple-600 to-violet-700 p-6 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-100">Certificate preview</p>
-                  <h2 className="mt-2 text-2xl font-semibold">{fullName.trim() || "Your Name"}</h2>
-                </div>
-                <div className="rounded-2xl bg-white/20 p-3">
-                  <Award className="h-8 w-8" aria-hidden="true" />
-                </div>
+      <div className="mx-auto max-w-6xl">
+        {/* Congratulations banner when coming from exam */}
+        {fromExam && score !== null && (
+          <div className="mb-6 rounded-3xl border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-6 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="rounded-2xl bg-green-100 p-3">
+                <Trophy className="h-8 w-8 text-green-600" aria-hidden="true" />
               </div>
-              <p className="mt-4 text-sm text-indigo-100">has successfully completed</p>
-              <p className="mt-2 text-xl font-semibold">{course.title}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <span className="rounded-full bg-white/20 px-3 py-1 text-sm">Score: {score}%</span>
-                <span className="rounded-full bg-white/20 px-3 py-1 text-sm">Grade: {finalGrade?.grade} ({finalGrade?.label})</span>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-green-900">Congratulations! You passed!</h2>
+                <p className="mt-1 text-sm text-green-700">
+                  You scored <span className="font-bold">{score}%</span> on your final exam. Your certificate is ready to purchase below.
+                </p>
               </div>
             </div>
-
-            <div className="mt-6">
-              <label className="block text-sm font-semibold text-slate-700">Full name on certificate</label>
-              <input
-                value={fullName}
-                onChange={(event) => {
-                  setFullName(event.target.value);
-                  if (event.target.value.trim()) setNameError(false);
-                }}
-                placeholder="Enter your full name"
-                disabled={isPurchased}
-                className={`mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none ring-0 focus:border-purple-500 disabled:bg-slate-100 disabled:cursor-not-allowed ${
-                  nameError ? "border-red-500 focus:border-red-500" : "border-slate-200"
-                }`}
-              />
-              {nameError && <p className="mt-1 text-xs text-red-600">Please enter your full name to proceed</p>}
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button 
+                onClick={() => setLocation(`/final-exam/${courseId}`)} 
+                className="inline-flex items-center gap-2 rounded-xl border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-green-700 hover:bg-green-50"
+              >
+                View exam results
+              </button>
+              <button 
+                onClick={() => setLocation("/dashboard")} 
+                className="inline-flex items-center gap-2 rounded-xl border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-green-700 hover:bg-green-50"
+              >
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to dashboard
+              </button>
             </div>
+          </div>
+        )}
 
-            {!isPurchased ? (
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <button
-                  onClick={handlePay}
-                  disabled={isPaying || !fullName.trim()}
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-purple-600 px-5 py-3 text-sm font-semibold text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {isPaying ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <CreditCard className="h-4 w-4" aria-hidden="true" />}
-                  Pay ₹99 for certificate
-                </button>
-                <button onClick={() => setLocation("/dashboard")} className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-white">
-                  <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to dashboard
-                </button>
-              </div>
-            ) : (
-              <div className="mt-6 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">
-                <div className="flex items-center gap-2 font-semibold">
-                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Certificate unlocked
-                </div>
-                <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-                  <button onClick={handleDownload} className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700">
-                    <Download className="h-4 w-4" aria-hidden="true" /> Download certificate
-                  </button>
-                  <button onClick={() => setLocation("/dashboard")} className="inline-flex items-center gap-2 rounded-xl border border-green-200 bg-white px-4 py-2 font-semibold text-green-700 hover:bg-green-100">
-                    <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Go to dashboard
-                  </button>
-                  <button onClick={handleShare} className="inline-flex items-center gap-2 rounded-xl border border-green-200 bg-white px-4 py-2 font-semibold text-green-700 hover:bg-green-100">
-                    <Share2 className="h-4 w-4" aria-hidden="true" /> Share achievement
-                  </button>
-                </div>
-              </div>
-            )}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-purple-600">Certificate</p>
+              <h1 className="mt-2 text-3xl font-bold text-slate-900">Get your verified certificate</h1>
+              <p className="mt-2 text-sm text-slate-600">Complete the payment, add your name, preview the certificate, and download it instantly.</p>
+            </div>
+            <button onClick={() => setLocation("/dashboard")} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to dashboard
+            </button>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6">
-            <h3 className="text-lg font-semibold text-slate-900">What you get</h3>
-            <ul className="mt-4 space-y-3 text-sm text-slate-600">
-              <li className="rounded-2xl bg-slate-50 p-3">• Verified certificate for your completed course</li>
-              <li className="rounded-2xl bg-slate-50 p-3">• Your final score and grade shown on the certificate</li>
-              <li className="rounded-2xl bg-slate-50 p-3">• Download as PDF and share instantly</li>
-            </ul>
-            <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
-              <p className="font-semibold">One-time fee</p>
-              <p className="mt-1 text-2xl font-bold text-amber-800">₹99</p>
+          <div className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+              <div className="rounded-3xl border border-purple-100 bg-gradient-to-br from-indigo-600 via-purple-600 to-violet-700 p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-100">Certificate preview</p>
+                    <h2 className="mt-2 text-2xl font-semibold">{fullName.trim() || "Your Name"}</h2>
+                  </div>
+                  <div className="rounded-2xl bg-white/20 p-3">
+                    <Award className="h-8 w-8" aria-hidden="true" />
+                  </div>
+                </div>
+                <p className="mt-4 text-sm text-indigo-100">has successfully completed</p>
+                <p className="mt-2 text-xl font-semibold">{course.title}</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="rounded-full bg-white/20 px-3 py-1 text-sm">Score: {score}%</span>
+                  <span className="rounded-full bg-white/20 px-3 py-1 text-sm">Grade: {finalGrade?.grade} ({finalGrade?.label})</span>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <label className="block text-sm font-semibold text-slate-700">Full name on certificate</label>
+                <input
+                  value={fullName}
+                  onChange={(event) => {
+                    setFullName(event.target.value);
+                    if (event.target.value.trim()) setNameError(false);
+                  }}
+                  placeholder="Enter your full name"
+                  disabled={isPurchased}
+                  className={`mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none ring-0 focus:border-purple-500 disabled:bg-slate-100 disabled:cursor-not-allowed ${
+                    nameError ? "border-red-500 focus:border-red-500" : "border-slate-200"
+                  }`}
+                />
+                {nameError && <p className="mt-1 text-xs text-red-600">Please enter your full name to proceed</p>}
+              </div>
+
+              {!isPurchased ? (
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <button
+                    onClick={handlePay}
+                    disabled={isPaying || !fullName.trim() || !canUnlockCertificate}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-purple-600 px-5 py-3 text-sm font-semibold text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {isPaying ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <CreditCard className="h-4 w-4" aria-hidden="true" />}
+                    Pay ₹99 for certificate
+                  </button>
+                  <button onClick={() => setLocation("/dashboard")} className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-white">
+                    <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to dashboard
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-6 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">
+                  <div className="flex items-center gap-2 font-semibold">
+                    <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Certificate unlocked
+                  </div>
+                  <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                    <button onClick={handleDownload} className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700">
+                      <Download className="h-4 w-4" aria-hidden="true" /> Download certificate
+                    </button>
+                    <button onClick={() => setLocation("/dashboard")} className="inline-flex items-center gap-2 rounded-xl border border-green-200 bg-white px-4 py-2 font-semibold text-green-700 hover:bg-green-100">
+                      <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Go to dashboard
+                    </button>
+                    <button onClick={handleShare} className="inline-flex items-center gap-2 rounded-xl border border-green-200 bg-white px-4 py-2 font-semibold text-green-700 hover:bg-green-100">
+                      <Share2 className="h-4 w-4" aria-hidden="true" /> Share achievement
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white p-6">
+              <h3 className="text-lg font-semibold text-slate-900">What you get</h3>
+              <ul className="mt-4 space-y-3 text-sm text-slate-600">
+                <li className="rounded-2xl bg-slate-50 p-3">• Verified certificate for your completed course</li>
+                <li className="rounded-2xl bg-slate-50 p-3">• Your final score and grade shown on the certificate</li>
+                <li className="rounded-2xl bg-slate-50 p-3">• Download as PDF and share instantly</li>
+              </ul>
+              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+                <p className="font-semibold">One-time fee</p>
+                <p className="mt-1 text-2xl font-bold text-amber-800">₹99</p>
+              </div>
             </div>
           </div>
         </div>

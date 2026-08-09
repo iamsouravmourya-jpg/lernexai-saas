@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 const TIME_LIMIT_MINUTES = 30;
-const PASSING_SCORE = 80;
+const PASSING_SCORE = 40;
 const GRACE_SECONDS = 20;
 
 interface FinalExamQuestionRow {

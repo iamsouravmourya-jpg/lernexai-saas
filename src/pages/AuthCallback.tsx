@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase";
 
 export default function AuthCallback() {
   const [, setLocation] = useLocation();
-  const { refreshUser } = useAuth();
   const [message, setMessage] = useState("Completing sign in…");
 
   useEffect(() => {
@@ -25,7 +24,6 @@ export default function AuthCallback() {
         }
 
         if (data.session) {
-          await refreshUser();
           if (!active) return;
           setLocation("/dashboard", { replace: true });
           return;
@@ -36,7 +34,6 @@ export default function AuthCallback() {
       if (!active) return;
 
       if (data.session) {
-        await refreshUser();
         if (!active) return;
         setLocation("/dashboard", { replace: true });
         return;
@@ -51,7 +48,7 @@ export default function AuthCallback() {
     return () => {
       active = false;
     };
-  }, [setLocation, refreshUser]);
+  }, [setLocation]);
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-gray-50 px-6 text-center">

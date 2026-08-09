@@ -40,6 +40,7 @@ interface RazorpayCheckoutOptions {
   name: string;
   description: string;
   order_id: string;
+  image?: string;
   prefill: {
     name: string;
     email: string;
@@ -104,7 +105,13 @@ export async function createOrder(params: CreateOrderParams): Promise<RazorpayOr
   return data;
 }
 
-export async function verifyPayment(params: RazorpayPaymentResponse): Promise<VerifyPaymentResult> {
+export async function verifyPayment(params: RazorpayPaymentResponse & {
+  course_id?: string;
+  course_title?: string;
+  score?: number;
+  grade?: string;
+  full_name?: string;
+}): Promise<VerifyPaymentResult> {
   const { data, error } = await supabase.functions.invoke<VerifyPaymentResult>("verify-razorpay-payment", {
     body: params,
   });
@@ -147,6 +154,7 @@ export async function openRazorpayCheckout(options: {
     name: "LernexAI",
     description: options.orderId.includes("cert") ? "LernexAI Certificate" : "LernexAI Pro subscription",
     order_id: options.orderId,
+    image: "/favicon.svg",
     prefill: {
       name: options.userName,
       email: options.userEmail,
