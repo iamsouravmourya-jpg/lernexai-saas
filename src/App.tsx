@@ -77,7 +77,6 @@ function Router() {
         <Route path="/contact" component={Contact} />
         <Route path="/about-founder" component={AboutFounder} />
         <Route path="/verify" component={VerifyCertificate} />
-        <Route path="/verify/:certificateId" component={VerifyCertificate} />
         <Route path="/auth" component={Auth} />
         <Route path="/auth/callback" component={AuthCallback} />
         <Route path="/upgrade">

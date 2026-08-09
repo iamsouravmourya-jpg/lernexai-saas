@@ -212,7 +212,7 @@ export default function CertificateCheckoutPage() {
     const issuedDate = formatDate(new Date());
     const certId =
       purchaseRecord?.certificate_id ?? (courseId ? buildCertificateId(courseId, score) : "");
-    const verifyUrl = getAppUrl(`/verify/${encodeURIComponent(certId)}`);
+    const verifyUrl = getAppUrl(`/verify`);
 
     // Record certificate download
     if (user?.id) {

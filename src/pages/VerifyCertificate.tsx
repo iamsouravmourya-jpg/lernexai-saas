@@ -1,5 +1,4 @@
-import { FormEvent, useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "wouter";
+import { FormEvent, useCallback, useState } from "react";
 import { Award, CheckCircle2, Loader2, Search, ShieldAlert, XCircle } from "lucide-react";
 import { Footer } from "@/components/landing/Footer";
 import { Navbar } from "@/components/landing/Navbar";
@@ -14,10 +13,7 @@ function formatIssuedDate(value: string) {
 }
 
 export default function VerifyCertificate() {
-  const params = useParams<{ certificateId?: string }>();
-  const initialId = params.certificateId ? decodeURIComponent(params.certificateId) : "";
-
-  const [certificateId, setCertificateId] = useState(initialId);
+  const [certificateId, setCertificateId] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CertificateVerification | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,11 +43,6 @@ export default function VerifyCertificate() {
     }
   }, []);
 
-  useEffect(() => {
-    if (initialId.trim()) {
-      void runVerify(initialId);
-    }
-  }, [initialId, runVerify]);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -146,11 +137,7 @@ export default function VerifyCertificate() {
             <XCircle className="mx-auto h-12 w-12 text-slate-400" aria-hidden="true" />
             <h2 className="mt-4 text-xl font-bold text-slate-900">Not verified</h2>
             <p className="mt-2 text-sm text-slate-600">
-              We could not find this certificate in our records. Check the ID and try again, or contact{" "}
-              <Link href="/contact" className="font-semibold text-purple-600 hover:underline">
-                support
-              </Link>
-              .
+              We could not find this certificate in our records. Check the ID and try again, or contact support.
             </p>
           </div>
         )}
