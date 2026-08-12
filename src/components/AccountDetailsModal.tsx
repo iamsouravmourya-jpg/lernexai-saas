@@ -42,9 +42,8 @@ export default function AccountDetailsModal({ isOpen, onClose, user, onSave }: A
       console.log("Save successful");
       setShowSuccess(true);
       setTimeout(() => {
-        setShowSuccess(false);
         onClose();
-      }, 1500);
+      }, 800);
     } catch (error) {
       console.error("Failed to save account details:", error);
       alert("Failed to save account details. Please try again.");
@@ -162,11 +161,10 @@ export default function AccountDetailsModal({ isOpen, onClose, user, onSave }: A
         {showSuccess && (
           <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-3xl flex items-center justify-center z-10">
             <div className="text-center">
-              <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="h-10 w-10 text-green-600" />
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+                <CheckCircle2 className="h-8 w-8 text-green-600" />
               </div>
-              <h3 className="text-2xl font-bold text-textDark mb-2">Saved!</h3>
-              <p className="text-textMuted">Your account details have been updated</p>
+              <h3 className="text-xl font-bold text-textDark">Saved!</h3>
             </div>
           </div>
         )}
