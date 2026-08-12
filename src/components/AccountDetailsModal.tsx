@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Save, User, Mail, Phone } from "lucide-react";
+import { X, Save, User, Mail, Phone, CheckCircle2 } from "lucide-react";
 
 interface AccountDetailsModalProps {
   isOpen: boolean;
@@ -19,26 +19,35 @@ export default function AccountDetailsModal({ isOpen, onClose, user, onSave }: A
   const [lastName, setLastName] = useState(user.last_name || "");
   const [phone, setPhone] = useState(user.phone || "");
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setFirstName(user.first_name || "");
       setLastName(user.last_name || "");
       setPhone(user.phone || "");
+      setShowSuccess(false);
     }
   }, [isOpen, user]);
 
   const handleSave = async () => {
     setLoading(true);
     try {
+      console.log("Saving account details:", { firstName, lastName, phone });
       await onSave({
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         phone: phone.trim()
       });
-      onClose();
+      console.log("Save successful");
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        onClose();
+      }, 1500);
     } catch (error) {
       console.error("Failed to save account details:", error);
+      alert("Failed to save account details. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -136,7 +145,7 @@ export default function AccountDetailsModal({ isOpen, onClose, user, onSave }: A
           <button
             onClick={handleSave}
             disabled={loading}
-            className="flex-1 px-6 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-white font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-6 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-white font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
           >
             {loading ? (
               <span>Saving...</span>
@@ -148,6 +157,19 @@ export default function AccountDetailsModal({ isOpen, onClose, user, onSave }: A
             )}
           </button>
         </div>
+
+        {/* Success Popup */}
+        {showSuccess && (
+          <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-3xl flex items-center justify-center z-10">
+            <div className="text-center">
+              <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="h-10 w-10 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-textDark mb-2">Saved!</h3>
+              <p className="text-textMuted">Your account details have been updated</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
