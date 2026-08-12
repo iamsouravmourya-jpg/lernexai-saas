@@ -1,0 +1,179 @@
+{
+  "course_title": "Excel for Beginners: Master Essential Desktop Spreadsheet Skills",
+  "target_audience": "Beginner Level",
+  "course_summary": "A step-by-step masterclass designed for absolute beginners to master Microsoft Excel on PC/Laptop. Learn grid navigation, formatting, fundamental formulas (SUM, AVERAGE, COUNT, IF), data sorting/filtering, and instant chart creation.",
+  "target_outcomes": "By the end of this course, learners will confidently build structured financial & inventory spreadsheets, apply dynamic formulas, filter large datasets, and export visual report charts in Microsoft Excel Desktop.",
+  "modules": [
+    {
+      "module_title": "Module 1: Excel Grid Navigation & Data Formatting",
+      "lessons": [
+        {
+          "lesson_title": "Lesson 1.1: Interface Overview & Workbook Setup",
+          "theoretical_deep_dive": "Microsoft Excel Desktop organizes numerical and textual data into a structured matrix of columns (labeled A, B, C) and rows (labeled 1, 2, 3). Understanding cell grid coordinates (such as cell A1 or D12) and navigating the Desktop Ribbon toolbar tabs (Home, Insert, Page Layout, Data) forms the essential foundation for all spreadsheet modeling. Mastering mouse left-clicks, right-clicks, and keyboard focus allows professionals to construct clean reports efficiently.",
+          "environment_and_tools_setup": "Launch Microsoft Excel 365 or Excel 2021 on your Windows PC or Mac Desktop. Click 'Blank Workbook' on the welcome screen to initialize a fresh worksheet. Ensure the Formula Bar and Gridlines are visible by navigating to Ribbon -> View Tab -> Show Group -> Check 'Gridlines' and 'Formula Bar'.",
+          "key_tools_shortcuts_or_syntax": "• Navigation Shortcuts: Ctrl + Arrow Keys (jump to edge of data block), Ctrl + Home (return to A1), Ctrl + End (jump to last populated cell).\n• Key Workbook Actions: F2 (Edit active cell), Ctrl + N (Create new workbook), Ctrl + S (Save workbook instantly).",
+          "practical_implementation_workflow": "Step 1: Left-click cell A1 and type 'Q1 Sales Report 2026' then press Enter.\nStep 2: Left-click cell A3 and enter column header 'Item ID'. Press Tab key to move right to B3.\nStep 3: In B3, type 'Product Name', in C3 type 'Quantity Sold', in D3 type 'Unit Cost', and in E3 type 'Total Value'.\nStep 4: Select row 3 by left-clicking row header 3, then go to Home Tab -> Font Group -> click 'Bold' (Ctrl + B) and set fill color to Light Slate Grey.",
+          "industry_protips_and_pitfalls": "• PRO-TIP: Double-click the column border line between column letters (e.g., between A and B) to AutoFit the column width to the longest text string instantly.\n• COMMON PITFALL: Avoid typing currency symbols like '$' or '₹' directly inside numerical values, as Excel will treat them as raw text strings and break downstream calculations.",
+          "hands_on_assignment": "Open Excel Desktop, build a 5-item product inventory table with column headers for Item, Category, Units, and Price, then apply bold formatting to the header row.",
+          "expected_deliverable_specs": "Saved Excel workbook (.xlsx) containing a clean 5-row inventory grid with AutoFitted columns and formatted headers."
+        },
+        {
+          "lesson_title": "Lesson 1.2: Number Formatting, Fonts & Cell Borders",
+          "theoretical_deep_dive": "Raw numerical data without visual hierarchy is difficult to analyze. Number formatting inside Microsoft Excel transforms plain digits into intuitive values—such as Currencies ($ / ₹ / €), Percentages (%), or Dates—without altering the underlying precision stored in memory. Cell borders and background fills draw immediate visual attention to total summary rows.",
+          "environment_and_tools_setup": "Open your active inventory workbook on Excel Desktop. Highlight the numerical data cells in column D (Unit Cost) and column E (Total Value) by left-clicking and dragging down the range.",
+          "key_tools_shortcuts_or_syntax": "• Number Formatting Shortcuts: Ctrl + Shift + $ (Apply Currency Format), Ctrl + Shift + % (Apply Percentage Format), Ctrl + Shift + # (Apply Date Format).\n• Border Tools: Home Tab -> Font Group -> Borders drop-down menu -> 'All Borders' and 'Thick Outside Border'.",
+          "practical_implementation_workflow": "Step 1: Left-click cell D4 and drag down to D8 to select the cost cells.\nStep 2: On the Home tab in the Ribbon, navigate to the Number group drop-down menu and select 'Currency'.\nStep 3: Click 'Decrease Decimal' button twice if you wish to round figures to whole units.\nStep 4: Select row 9 (Summary Row), apply 'Top Border and Double Bottom Border' from Home Tab -> Font Group -> Borders menu.",
+          "industry_protips_and_pitfalls": "• PRO-TIP: Use Format Painter (Home Tab -> Clipboard Group -> Paintbrush Icon) to copy formatting from one cell block and paint it onto another range with a single click.\n• COMMON PITFALL: Storing numbers as text strings (indicated by a small green triangle in the top-left corner of a cell) will cause SUM formulas to skip those cells.",
+          "hands_on_assignment": "Format a list of 5 employee salaries into Currency format with 2 decimal places and apply a double bottom border to the summary row.",
+          "expected_deliverable_specs": "Excel worksheet displaying properly formatted currency values and double-underline summary border aesthetics."
+        }
+      ],
+      "quiz": {
+        "quiz_title": "Module 1 Quiz: Excel Navigation & Formatting",
+        "passing_score": 60,
+        "time_limit_minutes": 10,
+        "questions": [
+          {
+            "question": "What shortcut key returns you to cell A1?",
+            "options": ["Ctrl + Home", "Ctrl + End", "Alt + Home", "Shift + Home"],
+            "correct_answer": 0
+          },
+          {
+            "question": "Which shortcut applies Currency format?",
+            "options": ["Ctrl + Shift + $", "Ctrl + Shift + %", "Ctrl + Shift + #", "Ctrl + Shift + !"],
+            "correct_answer": 0
+          },
+          {
+            "question": "What happens when you double-click a column border?",
+            "options": ["AutoFits column width", "Deletes column", "Hides column", "Sorts column"],
+            "correct_answer": 0
+          },
+          {
+            "question": "Which tool copies formatting from one cell to another?",
+            "options": ["Format Painter", "Fill Handle", "AutoSum", "Cell Styles"],
+            "correct_answer": 0
+          },
+          {
+            "question": "What indicates a number is stored as text?",
+            "options": ["Green triangle in corner", "Red border", "Blue background", "Yellow highlight"],
+            "correct_answer": 0
+          }
+        ]
+      }
+    },
+    {
+      "module_title": "Module 2: Core Formulas & Essential Functions",
+      "lessons": [
+        {
+          "lesson_title": "Lesson 2.1: Mathematical Calculations & AutoSum (SUM, AVERAGE, COUNT)",
+          "theoretical_deep_dive": "Formulas are the core computational engine of Microsoft Excel. Every formula begins with an equals sign (=). Rather than typing static numbers, Excel relies on cell references (e.g., =B4*C4) so that calculations update automatically whenever source numbers are modified. Fundamental statistical functions like SUM, AVERAGE, and COUNT handle aggregate reporting effortlessly.",
+          "environment_and_tools_setup": "Select your sales report worksheet in Excel Desktop with numerical columns populated in C4:C8 (Quantities) and D4:D8 (Unit Costs).",
+          "key_tools_shortcuts_or_syntax": "• Essential Syntax: =SUM(range), =AVERAGE(range), =COUNT(range), =MAX(range), =MIN(range).\n• Instant AutoSum Shortcut: Alt + = (Automatically inserts SUM formula for adjacent numerical cells).",
+          "practical_implementation_workflow": "Step 1: Left-click cell E4 and type '=C4*D4' then press Enter to calculate Total Value for row 1.\nStep 2: Hover mouse cursor over the bottom-right corner of cell E4 until it becomes a solid black cross (Fill Handle).\nStep 3: Double-click or left-click and drag the Fill Handle down to E8 to copy the formula to all rows.\nStep 4: Left-click cell E9 below the total column, press 'Alt + =' on keyboard, and press Enter to compute grand total.",
+          "industry_protips_and_pitfalls": "• PRO-TIP: Press Ctrl + ` (grave accent) on keyboard to toggle 'Show Formulas' mode across the entire sheet to audit calculations quickly.\n• COMMON PITFALL: Creating circular references (e.g., placing =SUM(E4:E9) inside cell E9 itself) causes an error loop in Excel.",
+          "hands_on_assignment": "Calculate total revenue, average sale value, and total transaction count for a 5-row invoice sheet using SUM, AVERAGE, and COUNT.",
+          "expected_deliverable_specs": "Excel spreadsheet containing dynamic =SUM, =AVERAGE, and =COUNT formulas calculating accurate grand totals."
+        },
+        {
+          "lesson_title": "Lesson 2.2: Logical Decision Making with IF Functions",
+          "theoretical_deep_dive": "The IF function introduces automated logic into spreadsheets. It evaluates a specified logical condition (e.g., whether sales exceed a target) and returns one distinct value if the condition is TRUE, and another value if it is FALSE. This is essential for credit approvals, performance flags, discount rules, and automated grading.",
+          "environment_and_tools_setup": "In Desktop Excel, open your worksheet and add a new column header in cell F3 named 'Bonus Status'.",
+          "key_tools_shortcuts_or_syntax": "• IF Function Syntax: =IF(logical_test, value_if_true, value_if_false).\n• Logical Operators: > (Greater than), < (Less than), >= (Greater or equal), <= (Less or equal), <> (Not equal to).",
+          "practical_implementation_workflow": "Step 1: Left-click cell F4.\nStep 2: Type '=IF(E4>=1000, \"Eligible\", \"Standard\")' into the Formula Bar.\nStep 3: Press Enter. Excel evaluates cell E4 and displays 'Eligible' if total value is 1000 or higher.\nStep 4: Left-click the Fill Handle of cell F4 and drag down to F8 to apply logical check across all inventory items.",
+          "industry_protips_and_pitfalls": "• PRO-TIP: Enclose textual output values inside double quotation marks (e.g., \"Eligible\") inside formulas; numbers do not require quotes.\n• COMMON PITFALL: Forgetting to close parentheses or misplacing quotation marks results in a '#NAME?' or syntax error popup.",
+          "hands_on_assignment": "Create a column titled 'Stock Alert' using an IF formula that outputs 'Reorder Needed' if Quantity < 10, otherwise 'In Stock'.",
+          "expected_deliverable_specs": "Excel file with a working IF formula column accurately flagging low inventory stock levels."
+        }
+      ],
+      "quiz": {
+        "quiz_title": "Module 2 Quiz: Excel Formulas & Functions",
+        "passing_score": 60,
+        "time_limit_minutes": 10,
+        "questions": [
+          {
+            "question": "What symbol must every Excel formula begin with?",
+            "options": ["=", "+", "-", "*"],
+            "correct_answer": 0
+          },
+          {
+            "question": "Which function calculates the average of a range?",
+            "options": ["=AVERAGE()", "=SUM()", "=COUNT()", "=MAX()"],
+            "correct_answer": 0
+          },
+          {
+            "question": "What is the AutoSum shortcut?",
+            "options": ["Alt + =", "Ctrl + =", "Shift + =", "Alt + S"],
+            "correct_answer": 0
+          },
+          {
+            "question": "What does the IF function do?",
+            "options": ["Evaluates conditions and returns different values", "Sums a range", "Counts cells", "Formats cells"],
+            "correct_answer": 0
+          },
+          {
+            "question": "What happens if you create a circular reference?",
+            "options": ["Excel shows an error loop", "Formula works normally", "Cell becomes locked", "Data gets deleted"],
+            "correct_answer": 0
+          }
+        ]
+      }
+    },
+    {
+      "module_title": "Module 3: Data Sorting, Filtering & Quick Visual Charts",
+      "lessons": [
+        {
+          "lesson_title": "Lesson 3.1: Data Sorting & Multi-Criteria AutoFiltering",
+          "theoretical_deep_dive": "As datasets grow to hundreds of rows, finding specific records manually becomes unfeasible. Sorting reorganizes rows alphabetically or numerically (A-Z, Z-A, Smallest to Largest). AutoFiltering allows users to temporarily isolate specific rows matching strict criteria without deleting underlying data.",
+          "environment_and_tools_setup": "Click any single cell inside your populated data table on Excel Desktop. Ensure row 3 contains distinct header titles.",
+          "key_tools_shortcuts_or_syntax": "• Toggle AutoFilter Shortcut: Ctrl + Shift + L (Instantly adds or removes drop-down filter arrows on headers).\n• Sort Actions: Ribbon Data Tab -> Sort & Filter Group -> 'Sort A to Z' or 'Sort Z to A'.",
+          "practical_implementation_workflow": "Step 1: Press Ctrl + Shift + L on keyboard to activate AutoFilter arrows on all header cells in row 3.\nStep 2: Left-click the filter arrow on 'Category' header cell B3.\nStep 3: Uncheck '(Select All)', then check only 'Hardware' and click OK.\nStep 4: Left-click the filter arrow on 'Total Value' cell E3 and choose 'Sort Largest to Smallest' to order records by highest value.",
+          "industry_protips_and_pitfalls": "• PRO-TIP: Ensure there are no completely blank rows or blank columns inside your data table before applying filters, otherwise Excel will only filter the top subset.\n• COMMON PITFALL: Sorting only a single selected column instead of the whole table scrambles data rows across columns permanently.",
+          "hands_on_assignment": "Apply AutoFilters to a 10-row sales log on Excel Desktop, sort rows by highest total revenue, and filter for a specific region.",
+          "expected_deliverable_specs": "Excel worksheet with active drop-down filter arrows showing filtered, sorted sales records."
+        },
+        {
+          "lesson_title": "Lesson 3.2: Creating Column & Pie Charts for Executive Reports",
+          "theoretical_deep_dive": "Visual charts transform dense numerical tables into executive graphic summaries. Column and Bar charts illustrate comparisons across discrete product categories, while Pie charts demonstrate proportional market share. Excel Desktop provides powerful formatting tools to customize chart titles, legends, axis scales, and color themes.",
+          "environment_and_tools_setup": "In Excel Desktop, highlight the summary range containing category names in B4:B8 and total sales values in E4:E8.",
+          "key_tools_shortcuts_or_syntax": "• Instant Chart Shortcut: Alt + F1 (Inserts a default 2D Column Chart on the active sheet instantly).\n• Chart Ribbon Tabs: Chart Design Tab and Format Tab (appear automatically when chart object is selected).",
+          "practical_implementation_workflow": "Step 1: Select cell range B3:B8, hold Ctrl key on keyboard, and select range E3:E8.\nStep 2: Navigate to Ribbon -> Insert Tab -> Charts Group -> click 'Insert Column or Bar Chart' -> select '2D Clustered Column'.\nStep 3: Double-click the 'Chart Title' text box on top of the chart object and type 'Q1 Product Sales Comparison'.\nStep 4: Drag the chart object below your table and resize using the corner handles.",
+          "industry_protips_and_pitfalls": "• PRO-TIP: Press Alt + F1 after highlighting data to generate a clean column chart instantly without navigating submenus.\n• COMMON PITFALL: Selecting totals rows along with category breakdown rows in chart ranges skews the scale, making individual bars look artificially small.",
+          "hands_on_assignment": "Generate a 2D Column Chart from a 5-item sales summary table in Excel Desktop, rename the title, and place it neatly below the data grid.",
+          "expected_deliverable_specs": "Excel workbook featuring a professional 2D Column Chart aligned below the source table."
+        }
+      ],
+      "quiz": {
+        "quiz_title": "Module 3 Quiz: Data Sorting, Filtering & Charts",
+        "passing_score": 60,
+        "time_limit_minutes": 10,
+        "questions": [
+          {
+            "question": "What shortcut toggles AutoFilter arrows?",
+            "options": ["Ctrl + Shift + L", "Ctrl + L", "Alt + L", "Shift + L"],
+            "correct_answer": 0
+          },
+          {
+            "question": "What happens if you sort only one column?",
+            "options": ["Data rows get scrambled across columns", "Sorts entire table correctly", "Deletes other columns", "Hides other columns"],
+            "correct_answer": 0
+          },
+          {
+            "question": "What shortcut creates a default column chart?",
+            "options": ["Alt + F1", "Ctrl + F1", "Alt + C", "Ctrl + C"],
+            "correct_answer": 0
+          },
+          {
+            "question": "What type of chart shows proportional market share?",
+            "options": ["Pie chart", "Column chart", "Line chart", "Bar chart"],
+            "correct_answer": 0
+          },
+          {
+            "question": "Why should you avoid blank rows in data tables?",
+            "options": ["Excel will only filter the top subset", "Blank rows improve performance", "Blank rows are required for formulas", "Blank rows don't affect filtering"],
+            "correct_answer": 0
+          }
+        ]
+      }
+    }
+  ]
+}

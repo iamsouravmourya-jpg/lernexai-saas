@@ -4,7 +4,9 @@ import { motion } from "framer-motion";
 import { Bell, BellRing, BookOpen, CheckCircle2, Menu, Sparkles, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import ContinueLearningCard from "@/components/ContinueLearningCard";
+import AccountDetailsModal from "@/components/AccountDetailsModal";
 import { fetchUserCertificatePurchases } from "@/lib/certificates";
+import { supabase } from "@/lib/supabase";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -18,6 +20,7 @@ export default function Dashboard() {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [accountDetailsOpen, setAccountDetailsOpen] = useState(false);
   const [completedCourse, setCompletedCourse] = useState<{ courseId: string; courseTitle: string; completedAt: string } | null>(null);
 
   const categoryStyles: Record<string, { card: string; icon: string; ring: string }> = {
@@ -95,6 +98,21 @@ export default function Dashboard() {
   const handleLogout = async () => {
     await logout();
     setLocation("/");
+  };
+
+  const handleSaveAccountDetails = async (data: { first_name: string; last_name: string; phone: string }) => {
+    if (!user?.id) return;
+
+    const { error } = await supabase
+      .from('users')
+      .update({
+        first_name: data.first_name,
+        last_name: data.last_name,
+        phone: data.phone || null
+      })
+      .eq('id', user.id);
+
+    if (error) throw error;
   };
 
   return (
@@ -269,12 +287,15 @@ export default function Dashboard() {
                     <div className="font-bold text-sm">{user?.name || "User"}</div>
                     <div className="text-xs text-textMuted">{user?.email}</div>
                   </div>
-                  <div className="w-full px-4 py-2 text-left text-sm text-gray-500 flex items-center gap-2">
+                  <button
+                    onClick={() => { setProfileDropdownOpen(false); setAccountDetailsOpen(true); }}
+                    className="w-full px-4 py-2 text-left text-sm text-textDark hover:bg-gray-50 transition-all flex items-center gap-2"
+                  >
                     <span>👤</span>
-                    <span>Account details coming soon</span>
-                  </div>
+                    <span>Account details</span>
+                  </button>
 
-                  <button 
+                  <button
                     onClick={async () => { setProfileDropdownOpen(false); await handleLogout(); }}
                     className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-all flex items-center gap-2"
                   >
@@ -665,6 +686,20 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* ACCOUNT DETAILS MODAL */}
+      <AccountDetailsModal
+        isOpen={accountDetailsOpen}
+        onClose={() => setAccountDetailsOpen(false)}
+        user={{
+          id: user?.id || "",
+          email: user?.email || "",
+          first_name: user?.first_name,
+          last_name: user?.last_name,
+          phone: user?.phone
+        }}
+        onSave={handleSaveAccountDetails}
+      />
     </div>
   );
 }
