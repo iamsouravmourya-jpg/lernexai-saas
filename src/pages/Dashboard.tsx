@@ -199,6 +199,10 @@ export default function Dashboard() {
               <span className="flex items-center gap-3"><span>🎓</span><span>Certificates</span></span>
               <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">New</span>
             </Link>
+            <Link href="/support" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-xl ${location === "/support" ? "bg-gradient-to-r from-primary to-secondary text-white font-semibold shadow-md" : "text-textMuted hover:bg-accent/20 hover:text-primary transition-all"}`}>
+              <span>🛟</span>
+              <span>Support</span>
+            </Link>
           </nav>
         </div>
 

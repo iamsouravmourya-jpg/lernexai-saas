@@ -25,6 +25,7 @@ const FinalExam = lazy(() => import('@/pages/FinalExam'));
 const Certificates = lazy(() => import('@/pages/Certificates'));
 const CertificateCheckoutPage = lazy(() => import('@/pages/CertificateCheckoutPage'));
 const VerifyCertificate = lazy(() => import('@/pages/VerifyCertificate'));
+const Support = lazy(() => import('@/pages/Support'));
 
 const queryClient = new QueryClient();
 
@@ -105,6 +106,9 @@ function Router() {
         </Route>
         <Route path="/certificate/:courseId">
           <ProtectedRoute component={CertificateCheckoutPage} />
+        </Route>
+        <Route path="/support">
+          <ProtectedRoute component={Support} />
         </Route>
         <Route component={NotFound} />
       </Switch>
