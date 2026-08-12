@@ -9,7 +9,7 @@ import { fetchUserCertificatePurchases } from "@/lib/certificates";
 import { supabase } from "@/lib/supabase";
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const [location, setLocation] = useLocation();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -113,6 +113,9 @@ export default function Dashboard() {
       .eq('id', user.id);
 
     if (error) throw error;
+
+    // Refresh user data to show updated information
+    await refreshUser();
   };
 
   return (

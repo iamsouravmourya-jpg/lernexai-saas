@@ -10,6 +10,9 @@ interface User {
   avatar?: string;
   plan_type?: string;
   created_at?: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
 }
 
 interface AuthContextType {
@@ -28,6 +31,54 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+async function fetchUserProfile(supabaseUser: SupabaseUser): Promise<User> {
+  try {
+    const { data: profileData, error } = await supabase
+      .from('users')
+      .select('first_name, last_name, phone, plan_type')
+      .eq('id', supabaseUser.id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching user profile:", error);
+      // Return basic user data if profile fetch fails
+      return {
+        email: supabaseUser.email || "",
+        name: supabaseUser.user_metadata?.full_name || supabaseUser.email?.split("@")[0] || "User",
+        id: supabaseUser.id,
+        avatar: supabaseUser.user_metadata?.avatar_url,
+        plan_type: supabaseUser.user_metadata?.plan_type || "free",
+        created_at: supabaseUser.created_at,
+      };
+    }
+
+    return {
+      email: supabaseUser.email || "",
+      name: [profileData?.first_name, profileData?.last_name].filter(Boolean).join(" ") ||
+            supabaseUser.user_metadata?.full_name ||
+            supabaseUser.email?.split("@")[0] ||
+            "User",
+      id: supabaseUser.id,
+      avatar: supabaseUser.user_metadata?.avatar_url,
+      plan_type: profileData?.plan_type || supabaseUser.user_metadata?.plan_type || "free",
+      created_at: supabaseUser.created_at,
+      first_name: profileData?.first_name,
+      last_name: profileData?.last_name,
+      phone: profileData?.phone,
+    };
+  } catch (error) {
+    console.error("Error in fetchUserProfile:", error);
+    return {
+      email: supabaseUser.email || "",
+      name: supabaseUser.user_metadata?.full_name || supabaseUser.email?.split("@")[0] || "User",
+      id: supabaseUser.id,
+      avatar: supabaseUser.user_metadata?.avatar_url,
+      plan_type: supabaseUser.user_metadata?.plan_type || "free",
+      created_at: supabaseUser.created_at,
+    };
+  }
+}
 
 function mapSupabaseUser(supabaseUser: SupabaseUser | null | undefined): User | null {
   if (!supabaseUser) return null;
@@ -55,7 +106,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
               try {
                 const { data: { session } } = await supabase.auth.getSession();
-                setUser(mapSupabaseUser(session?.user ?? null));
+                if (session?.user) {
+                  const userProfile = await fetchUserProfile(session.user);
+                  setUser(userProfile);
+                } else {
+                  setUser(null);
+                }
               } catch (error) {
                 console.error("Auth initialization failed", error);
                 setUser(null);
@@ -65,9 +121,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             void initializeAuth();
 
             // Listen for auth changes
-            const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-              const mappedUser = mapSupabaseUser(session?.user ?? null);
-              setUser(mappedUser);
+            const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+              if (session?.user) {
+                const userProfile = await fetchUserProfile(session.user);
+                setUser(userProfile);
+              } else {
+                setUser(null);
+              }
             });
 
             return () => subscription.unsubscribe();
@@ -86,7 +146,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
 
     if (data.user) {
-      setUser(mapSupabaseUser(data.user));
+      const userProfile = await fetchUserProfile(data.user);
+      setUser(userProfile);
     }
   };
 
@@ -112,9 +173,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (error) throw error;
 
-    if (data.session?.user) {
-      setUser(mapSupabaseUser(data.session.user));
-      return { sessionCreated: true };
+    if (data.user) {
+      // Also save to users table
+      try {
+        await supabase
+          .from('users')
+          .upsert({
+            id: data.user.id,
+            email: email,
+            first_name: firstName || null,
+            last_name: lastName || null,
+            plan_type: 'free'
+          });
+      } catch (profileError) {
+        console.error("Error creating user profile:", profileError);
+        // Don't fail signup if profile creation fails
+      }
+
+      if (data.session?.user) {
+        const userProfile = await fetchUserProfile(data.session.user);
+        setUser(userProfile);
+        return { sessionCreated: true };
+      }
     }
 
     return { sessionCreated: false };
@@ -152,7 +232,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
-    setUser(mapSupabaseUser(data.user));
+    if (data.user) {
+      const userProfile = await fetchUserProfile(data.user);
+      setUser(userProfile);
+    }
   };
 
   return (
