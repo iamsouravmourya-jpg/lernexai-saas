@@ -101,18 +101,51 @@ export default function Dashboard() {
   };
 
   const handleSaveAccountDetails = async (data: { first_name: string; last_name: string; phone: string }) => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.error("No user ID available");
+      throw new Error("User ID not available");
+    }
 
-    const { error } = await supabase
+    console.log("Saving to Supabase:", {
+      userId: user.id,
+      email: user.email,
+      data: data
+    });
+
+    // First try to update, if that fails, try to insert
+    const { error: updateError, data: updateData } = await supabase
       .from('users')
       .update({
         first_name: data.first_name,
         last_name: data.last_name,
         phone: data.phone || null
       })
-      .eq('id', user.id);
+      .eq('id', user.id)
+      .select();
 
-    if (error) throw error;
+    console.log("Update response:", { updateError, updateData });
+
+    if (updateError) {
+      console.log("Update failed, trying insert:", updateError);
+      // Try insert if update fails (user might not exist in users table)
+      const { error: insertError, data: insertData } = await supabase
+        .from('users')
+        .insert({
+          id: user.id,
+          email: user.email,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          phone: data.phone || null
+        })
+        .select();
+
+      console.log("Insert response:", { insertError, insertData });
+
+      if (insertError) {
+        console.error("Both update and insert failed:", insertError);
+        throw insertError;
+      }
+    }
 
     // Refresh user data to show updated information
     await refreshUser();
