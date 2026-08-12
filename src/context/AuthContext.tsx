@@ -23,7 +23,8 @@ interface AuthContextType {
     email: string,
     password: string,
     firstName?: string,
-    lastName?: string
+    lastName?: string,
+    phone?: string
   ) => Promise<{ sessionCreated: boolean }>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
@@ -151,7 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signup = async (email: string, password: string, firstName?: string, lastName?: string) => {
+  const signup = async (email: string, password: string, firstName?: string, lastName?: string, phone?: string) => {
     if (!isSupabaseConfigured) {
       throw new Error("Supabase environment variables are missing on this deployment.");
     }
@@ -183,6 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             email: email,
             first_name: firstName || null,
             last_name: lastName || null,
+            phone: phone || null,
             plan_type: 'free'
           });
       } catch (profileError) {

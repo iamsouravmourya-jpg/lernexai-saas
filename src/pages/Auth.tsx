@@ -17,6 +17,7 @@ export default function Auth() {
   // Form state
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -53,7 +54,7 @@ export default function Auth() {
     
     try {
       if (isSignUp) {
-        const result = await signup(email, password, firstName, lastName);
+        const result = await signup(email, password, firstName, lastName, phone);
         if (!result.sessionCreated) {
           setError("Account created. Check your email to verify your account, then sign in.");
           setIsSignUp(false);
@@ -198,25 +199,49 @@ export default function Auth() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">First name</label>
                   <div className="relative">
                     <span className="absolute left-3 top-3 text-gray-400">👤</span>
-                    <input 
-                      type="text" 
-                      placeholder="John" 
+                    <input
+                      type="text"
+                      placeholder="John"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="w-full pl-10 pr-4 h-11 rounded-lg border border-gray-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                      className="w-full pl-10 pr-4 h-11 rounded-lg border border-gray-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                       required
                     />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Last name (optional)</label>
-                  <input 
-                    type="text" 
-                    placeholder="Doe" 
+                  <input
+                    type="text"
+                    placeholder="Doe"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-4 h-11 rounded-lg border border-gray-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                    className="w-full px-4 h-11 rounded-lg border border-gray-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                   />
+                </div>
+              </div>
+            )}
+
+            {/* Phone Number */}
+            {isSignUp && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone number</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-3 text-gray-400">📱</span>
+                  <div className="flex items-center">
+                    <div className="flex items-center gap-2 px-4 h-11 rounded-l-lg border border-r-0 border-gray-200 bg-gray-50">
+                      <span className="text-gray-600">+91</span>
+                    </div>
+                    <input
+                      type="tel"
+                      placeholder="9876543210"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                      className="flex-1 px-4 h-11 rounded-r-lg border border-gray-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                      required
+                      maxLength={10}
+                    />
+                  </div>
                 </div>
               </div>
             )}
