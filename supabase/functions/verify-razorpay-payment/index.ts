@@ -99,7 +99,7 @@ serve(async (req) => {
     }
 
     if (payment.purpose === "pro_subscription") {
-      if (payment.amount !== 49900) {
+      if (payment.amount !== 39900) {
         return jsonResponse({ error: "Invalid subscription payment amount" }, 400);
       }
 

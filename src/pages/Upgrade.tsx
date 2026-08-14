@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { createOrder, verifyPayment, openRazorpayCheckout } from "@/lib/razorpay";
 import { Link } from "wouter";
 
-const PRO_AMOUNT_PAISE = 49900;
+const PRO_AMOUNT_PAISE = 39900;
 
 export default function Upgrade() {
   const { user, refreshUser } = useAuth();
@@ -186,7 +186,7 @@ export default function Upgrade() {
             <h3 className="text-xl font-bold text-gray-900 mb-2">Pro</h3>
             <div className="mb-6">
               <span className="text-sm text-gray-400 line-through mr-2">₹799</span>
-              <span className="text-4xl font-bold text-gray-900">₹499</span>
+              <span className="text-4xl font-bold text-gray-900">₹399</span>
               <span className="text-gray-500">/month</span>
             </div>
             <ul className="space-y-3 mb-8">
